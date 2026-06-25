@@ -104,9 +104,18 @@ a mano una vez y quedará disponible para siempre.
 En la pestaña "Calendario" puedes planificar tus comidas en una vista mensual:
 
 - Cada día tiene 4 franjas: Desayuno, Comida, Cena y Otros (meriendas, snacks…).
-- Toca un día para abrir el panel y asignar una receta ya guardada a cada franja.
+- Toca un día para abrir el panel y asignar recetas a cada franja — puedes
+  añadir **varias cosas a la misma franja** (por ejemplo, albóndigas en salsa
+  y un yogur en la misma comida).
+- Además de elegir una receta ya guardada, puedes añadir algo suelto que no
+  esté guardado como receta (un plátano, un yogur…) con solo su nombre y sus
+  kcal totales — se guarda automáticamente en tu recetario como una receta de
+  un solo ingrediente, así no tienes que volver a escribirlo otro día.
 - El calendario muestra las kcal totales planificadas para cada día con datos.
-- Arriba se muestra la media diaria de kcal de la semana actual y del mes actual
-  (calculada solo sobre los días que tengan al menos una receta planificada).
+- A la derecha de cada semana hay una columna con la **media diaria de esa
+  semana**, y arriba se muestra la media diaria del mes actual (calculada
+  solo sobre los días que tengan algo planificado).
+- Los días que ya han pasado se muestran con un tono más apagado para
+  diferenciarlos claramente de los días futuros.
 - Puedes navegar a meses anteriores o futuros con las flechas, o volver al mes
   actual con "Ir a hoy".
