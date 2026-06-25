@@ -65,7 +65,7 @@
   .icon-btn:active{ transform: scale(0.94); }
   .icon-btn.ghost{ background:transparent; color:var(--oliva); border:1.5px solid var(--oliva); }
 
-  main{ flex:1; padding:18px 20px 100px; max-width:640px; margin:0 auto; width:100%; }
+  main{ flex:1; padding:18px 20px 140px; max-width:640px; margin:0 auto; width:100%; }
 
   /* ---- search ---- */
   .search-wrap{ margin-bottom:18px; position:relative; }
@@ -129,13 +129,111 @@
 
   /* ---- FAB ---- */
   .fab{
-    position:fixed; bottom:28px; right:24px; z-index:30;
+    position:fixed; bottom:96px; right:24px; z-index:30;
     width:58px;height:58px;border-radius:50%;
     background:var(--terracota); color:white; border:none;
     font-size:28px; box-shadow:0 6px 16px rgba(200,112,79,0.4);
     cursor:pointer; display:flex; align-items:center; justify-content:center;
   }
   .fab:active{ transform: scale(0.92); }
+
+  .bottom-nav{
+    position:fixed; bottom:0; left:0; right:0; z-index:25;
+    background:var(--blanco-papel); border-top:1px solid var(--linea);
+    display:flex; padding:8px 0 calc(env(safe-area-inset-bottom) + 8px);
+  }
+  .bottom-nav-item{
+    flex:1; display:flex; flex-direction:column; align-items:center; gap:3px;
+    background:none; border:none; padding:6px 0; cursor:pointer;
+    color:#9b9182; font-size:11.5px; font-weight:600;
+  }
+  .bottom-nav-icon{ font-size:20px; line-height:1; filter:grayscale(1); opacity:0.6; }
+  .bottom-nav-item.active{ color:var(--oliva); }
+  .bottom-nav-item.active .bottom-nav-icon{ filter:none; opacity:1; }
+
+  /* ---- Calendario ---- */
+  .cal-main{ flex:1; padding:18px 20px 140px; max-width:640px; margin:0 auto; width:100%; }
+  .cal-header{
+    display:flex; align-items:center; justify-content:space-between; margin-bottom:6px;
+  }
+  .cal-header h2{ font-size:20px; font-weight:700; margin:0; text-transform:capitalize; }
+  .cal-nav-btn{
+    width:36px; height:36px; border-radius:50%; border:1.5px solid var(--linea); background:var(--blanco-papel);
+    color:var(--oliva); font-size:16px; display:flex; align-items:center; justify-content:center; cursor:pointer;
+  }
+  .cal-today-btn{
+    font-size:12px; color:var(--oliva); font-weight:600; background:none; border:none; cursor:pointer;
+    text-decoration:underline; margin-bottom:16px; padding:0;
+  }
+
+  .cal-summary-row{ display:flex; gap:10px; margin-bottom:20px; }
+  .cal-summary-box{
+    flex:1; background:var(--blanco-papel); border:1px solid var(--linea); border-radius:14px;
+    padding:12px 10px; text-align:center;
+  }
+  .cal-summary-box .num{ font-size:18px; font-weight:700; color:var(--terracota); }
+  .cal-summary-box .lbl{ font-size:10px; color:#8a8071; text-transform:uppercase; letter-spacing:0.3px; margin-top:2px; }
+
+  .cal-weekdays{ display:grid; grid-template-columns:repeat(7,1fr); margin-bottom:6px; }
+  .cal-weekdays span{ text-align:center; font-size:11px; color:#a39a8c; font-weight:700; }
+
+  .cal-grid{ display:grid; grid-template-columns:repeat(7,1fr); gap:5px; }
+  .cal-day{
+    aspect-ratio:1; border-radius:10px; border:1px solid var(--linea); background:var(--blanco-papel);
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    cursor:pointer; position:relative; padding:2px; gap:2px;
+  }
+  .cal-day.other-month{ opacity:0.35; }
+  .cal-day.today{ border:1.5px solid var(--oliva); }
+  .cal-day .daynum{ font-size:12.5px; font-weight:600; color:var(--carbon); }
+  .cal-day .daykcal{ font-size:9px; color:var(--terracota); font-weight:700; }
+  .cal-day .daydots{ display:flex; gap:2px; margin-top:1px; }
+  .cal-day .daydot{ width:4px; height:4px; border-radius:50%; background:var(--oliva); }
+
+  /* ---- panel de día (slide-up) ---- */
+  .day-panel-overlay{
+    position:fixed; inset:0; background:rgba(43,38,34,0.35); z-index:60;
+    display:flex; align-items:flex-end;
+  }
+  .day-panel{
+    background:var(--crema); border-radius:20px 20px 0 0; width:100%; max-height:85vh; overflow-y:auto;
+    padding:20px 20px calc(env(safe-area-inset-bottom) + 24px);
+  }
+  .day-panel-handle{ width:36px; height:4px; background:var(--linea); border-radius:100px; margin:0 auto 16px; }
+  .day-panel h3{ font-size:19px; margin:0 0 4px; text-transform:capitalize; }
+  .day-panel .day-total{ font-size:13px; color:var(--terracota); font-weight:700; margin-bottom:18px; }
+
+  .franja-block{ margin-bottom:16px; }
+  .franja-block .franja-label{
+    font-size:13px; font-weight:700; color:var(--oliva); display:flex; align-items:center; gap:6px; margin-bottom:8px;
+  }
+  .franja-slot{
+    background:var(--blanco-papel); border:1px solid var(--linea); border-radius:12px;
+    padding:12px 14px; display:flex; align-items:center; justify-content:space-between; gap:10px;
+    min-height:24px;
+  }
+  .franja-slot.empty{ color:#a39a8c; font-size:14px; cursor:pointer; justify-content:center; border-style:dashed; }
+  .franja-slot .slot-recipe-name{ font-size:14.5px; font-weight:600; flex:1; min-width:0; }
+  .franja-slot .slot-kcal{ font-size:12px; color:#8a8071; flex-shrink:0; }
+  .franja-slot .slot-remove{ background:none; border:none; color:#b8ad9a; font-size:18px; cursor:pointer; padding:0 2px; flex-shrink:0; }
+
+  .recipe-picker-overlay{
+    position:fixed; inset:0; background:rgba(43,38,34,0.4); z-index:70;
+    display:flex; align-items:flex-end;
+  }
+  .recipe-picker{
+    background:var(--crema); border-radius:20px 20px 0 0; width:100%; max-height:80vh; overflow-y:auto;
+    padding:20px 20px calc(env(safe-area-inset-bottom) + 24px);
+  }
+  .recipe-picker h3{ font-size:17px; margin:0 0 14px; }
+  .recipe-picker-item{
+    background:var(--blanco-papel); border:1px solid var(--linea); border-radius:12px;
+    padding:12px 14px; margin-bottom:8px; display:flex; align-items:center; gap:10px; cursor:pointer;
+  }
+  .recipe-picker-item .stamp-sm{ width:36px; height:36px; font-size:16px; }
+  .recipe-picker-item .name{ flex:1; font-size:14.5px; font-weight:600; min-width:0; }
+  .recipe-picker-item .kcal{ font-size:12px; color:var(--terracota); flex-shrink:0; }
+  .recipe-picker-empty{ text-align:center; color:#9b9182; padding:30px 10px; font-size:14px; }
 
   /* ---- detail / form screens ---- */
   .screen{
@@ -229,6 +327,20 @@
   .ing-form-row .top-line select{ flex:0 0 64px; min-width:0; padding-left:6px; padding-right:2px; font-size:13px; }
   .ing-form-row .bottom-line{ display:flex; gap:8px; align-items:center; }
   .ing-form-row .bottom-line input{ flex:1; min-width:0; }
+
+  .suggest-dropdown{
+    position:absolute; top:calc(100% + 4px); left:0; right:0; z-index:35;
+    background:var(--blanco-papel); border:1px solid var(--linea); border-radius:12px;
+    box-shadow:0 6px 16px rgba(43,38,34,0.18); overflow:hidden; max-height:220px; overflow-y:auto;
+  }
+  .suggest-item{
+    padding:10px 14px; display:flex; justify-content:space-between; align-items:baseline;
+    gap:10px; cursor:pointer; border-bottom:1px solid var(--linea);
+  }
+  .suggest-item:last-child{ border-bottom:none; }
+  .suggest-item:active{ background:var(--crema-osc); }
+  .suggest-name{ font-size:14px; color:var(--carbon); flex:1; min-width:0; }
+  .suggest-kcal{ font-size:11.5px; color:#a39a8c; flex-shrink:0; white-space:nowrap; }
   .remove-x{
     background:none;border:none; color:#b8ad9a; font-size:20px; cursor:pointer; padding:0 4px; line-height:1;
   }
@@ -290,9 +402,10 @@ const { useState, useEffect, useRef, useCallback } = React;
 const DB_NAME = "recetario-db";
 const STORE = "recetas";
 const STORE_ALIMENTOS = "alimentos_personales";
+const STORE_PLAN = "planificacion";
 function openDB(){
   return new Promise((resolve,reject)=>{
-    const req = indexedDB.open(DB_NAME, 2);
+    const req = indexedDB.open(DB_NAME, 3);
     req.onupgradeneeded = (e)=>{
       const db = e.target.result;
       if(!db.objectStoreNames.contains(STORE)){
@@ -300,6 +413,9 @@ function openDB(){
       }
       if(!db.objectStoreNames.contains(STORE_ALIMENTOS)){
         db.createObjectStore(STORE_ALIMENTOS, { keyPath: "clave" });
+      }
+      if(!db.objectStoreNames.contains(STORE_PLAN)){
+        db.createObjectStore(STORE_PLAN, { keyPath: "fecha" }); // fecha en formato "YYYY-MM-DD"
       }
     };
     req.onsuccess = ()=>resolve(req.result);
@@ -355,6 +471,26 @@ async function dbPutAlimento(alimento){
   });
 }
 
+// --- Planificación de comidas (calendario) ---
+async function dbGetAllPlan(){
+  const db = await openDB();
+  return new Promise((resolve,reject)=>{
+    const tx = db.transaction(STORE_PLAN, "readonly");
+    const req = tx.objectStore(STORE_PLAN).getAll();
+    req.onsuccess = ()=>resolve(req.result || []);
+    req.onerror = ()=>reject(req.error);
+  });
+}
+async function dbPutPlanDia(diaPlan){
+  const db = await openDB();
+  return new Promise((resolve,reject)=>{
+    const tx = db.transaction(STORE_PLAN, "readwrite");
+    tx.objectStore(STORE_PLAN).put(diaPlan);
+    tx.oncomplete = ()=>resolve();
+    tx.onerror = ()=>reject(tx.error);
+  });
+}
+
 // ---------- helpers ----------
 const uid = ()=> Date.now().toString(36) + Math.random().toString(36).slice(2,8);
 
@@ -370,6 +506,36 @@ const catIcon = (id)=> (CATEGORIAS.find(c=>c.id===id)||{}).icon || "❋";
 const catLabel = (id)=> (CATEGORIAS.find(c=>c.id===id)||{}).label || "Receta";
 
 const UNIDADES = ["g","kg","ml","l","ud","cda","cdta","taza","pizca","al gusto"];
+
+const FRANJAS = [
+  {id:"desayuno", label:"Desayuno", icon:"☀"},
+  {id:"comida", label:"Comida", icon:"🍲"},
+  {id:"cena", label:"Cena", icon:"🌙"},
+  {id:"otros", label:"Otros", icon:"✦"},
+];
+const MESES = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
+const DIAS_SEMANA = ["L","M","X","J","V","S","D"];
+
+function fechaToKey(date){
+  const y = date.getFullYear();
+  const m = (date.getMonth()+1).toString().padStart(2,'0');
+  const d = date.getDate().toString().padStart(2,'0');
+  return `${y}-${m}-${d}`;
+}
+function keyToFecha(key){
+  const [y,m,d] = key.split('-').map(Number);
+  return new Date(y, m-1, d);
+}
+function isSameDay(a,b){
+  return a.getFullYear()===b.getFullYear() && a.getMonth()===b.getMonth() && a.getDate()===b.getDate();
+}
+// kcal por porción de una receta (total de ingredientes / porciones base)
+function kcalPorPorcion(receta){
+  if(!receta) return 0;
+  const total = calcTotalKcalBase(receta.ingredientes||[]);
+  const porciones = receta.porciones || 1;
+  return porciones ? total/porciones : 0;
+}
 
 function round1(n){ return Math.round(n*10)/10; }
 
@@ -410,7 +576,9 @@ async function lookupKcalPer100g(query, alimentosPersonales){
 function App(){
   const [recetas, setRecetas] = useState([]);
   const [alimentosPersonales, setAlimentosPersonales] = useState([]);
+  const [plan, setPlan] = useState({}); // { "YYYY-MM-DD": {desayuno,comida,cena,otros} }
   const [loaded, setLoaded] = useState(false);
+  const [tab, setTab] = useState("recetario"); // recetario | calendario
   const [view, setView] = useState({ screen:"list" }); // list | detail | form
   const [search, setSearch] = useState("");
   const [filtro, setFiltro] = useState("todas");
@@ -418,9 +586,12 @@ function App(){
   const toastTimer = useRef(null);
 
   useEffect(()=>{
-    Promise.all([dbGetAll(), dbGetAllAlimentos()]).then(([recetasData, alimentosData])=>{
+    Promise.all([dbGetAll(), dbGetAllAlimentos(), dbGetAllPlan()]).then(([recetasData, alimentosData, planData])=>{
       setRecetas(recetasData.sort((a,b)=> (b.creadoEn||0)-(a.creadoEn||0)));
       setAlimentosPersonales(alimentosData);
+      const planMap = {};
+      planData.forEach(d=>{ planMap[d.fecha] = d; });
+      setPlan(planMap);
       setLoaded(true);
     }).catch(()=>setLoaded(true));
   },[]);
@@ -440,6 +611,16 @@ function App(){
     setAlimentosPersonales(prev=>{
       const existing = prev.filter(a=>a.clave!==clave);
       return [...existing, alimento];
+    });
+  },[]);
+
+  // Asigna (o quita, si recetaId es null) una receta a una franja de un día concreto
+  const setPlanSlot = useCallback(async (fechaKey, franjaId, recetaId)=>{
+    setPlan(prev=>{
+      const diaActual = prev[fechaKey] || { fecha: fechaKey, desayuno:null, comida:null, cena:null, otros:null };
+      const diaNuevo = { ...diaActual, [franjaId]: recetaId };
+      dbPutPlanDia(diaNuevo); // persistir en segundo plano
+      return { ...prev, [fechaKey]: diaNuevo };
     });
   },[]);
 
@@ -479,65 +660,88 @@ function App(){
 
   return (
     <React.Fragment>
-      <div className="topbar">
-        <div className="brand">
-          <div className="stamp">R</div>
-          <h1 className="serif">Mi Recetario</h1>
-        </div>
-      </div>
-
-      <main>
-        <div className="search-wrap">
-          <span className="search-icon">⌕</span>
-          <input
-            placeholder="Buscar receta o ingrediente…"
-            value={search}
-            onChange={e=>setSearch(e.target.value)}
-          />
-        </div>
-
-        <div className="filters">
-          <button className={"chip"+(filtro==="todas"?" active":"")} onClick={()=>setFiltro("todas")}>Todas</button>
-          {CATEGORIAS.map(c=>(
-            <button key={c.id} className={"chip"+(filtro===c.id?" active":"")} onClick={()=>setFiltro(c.id)}>
-              {c.icon} {c.label}
-            </button>
-          ))}
-        </div>
-
-        {filtered.length===0 ? (
-          <div className="empty">
-            <div className="stamp serif">R</div>
-            <h3>{recetas.length===0 ? "Tu recetario está vacío" : "No hay coincidencias"}</h3>
-            <p>{recetas.length===0 ? "Toca el botón + para añadir tu primera receta." : "Prueba con otra búsqueda o categoría."}</p>
+      {tab==="recetario" && (
+        <React.Fragment>
+          <div className="topbar">
+            <div className="brand">
+              <div className="stamp">R</div>
+              <h1 className="serif">Mi Recetario</h1>
+            </div>
           </div>
-        ) : (
-          <div className="card-list">
-            {filtered.map(r=>{
-              const servingsBase = r.porciones || 1;
-              const totalKcal = calcTotalKcalBase(r.ingredientes||[]);
-              const kcalPerServing = servingsBase ? Math.round(totalKcal/servingsBase) : 0;
-              return (
-                <div key={r.id} className="recipe-card" onClick={()=>setView({screen:"detail", id:r.id})}>
-                  {r.destacada && <span className="tab">Favorita</span>}
-                  <div className="stamp-sm">{catIcon(r.categoria)}</div>
-                  <div className="info">
-                    <h3>{r.titulo}</h3>
-                    <div className="meta-row">
-                      <span>⏱ {r.tiempo || '—'} min</span>
-                      <span>◷ {servingsBase} porc.</span>
-                      <span>{catLabel(r.categoria)}</span>
+
+          <main>
+            <div className="search-wrap">
+              <span className="search-icon">⌕</span>
+              <input
+                placeholder="Buscar receta o ingrediente…"
+                value={search}
+                onChange={e=>setSearch(e.target.value)}
+              />
+            </div>
+
+            <div className="filters">
+              <button className={"chip"+(filtro==="todas"?" active":"")} onClick={()=>setFiltro("todas")}>Todas</button>
+              {CATEGORIAS.map(c=>(
+                <button key={c.id} className={"chip"+(filtro===c.id?" active":"")} onClick={()=>setFiltro(c.id)}>
+                  {c.icon} {c.label}
+                </button>
+              ))}
+            </div>
+
+            {filtered.length===0 ? (
+              <div className="empty">
+                <div className="stamp serif">R</div>
+                <h3>{recetas.length===0 ? "Tu recetario está vacío" : "No hay coincidencias"}</h3>
+                <p>{recetas.length===0 ? "Toca el botón + para añadir tu primera receta." : "Prueba con otra búsqueda o categoría."}</p>
+              </div>
+            ) : (
+              <div className="card-list">
+                {filtered.map(r=>{
+                  const servingsBase = r.porciones || 1;
+                  const totalKcal = calcTotalKcalBase(r.ingredientes||[]);
+                  const kcalPerServing = servingsBase ? Math.round(totalKcal/servingsBase) : 0;
+                  return (
+                    <div key={r.id} className="recipe-card" onClick={()=>setView({screen:"detail", id:r.id})}>
+                      {r.destacada && <span className="tab">Favorita</span>}
+                      <div className="stamp-sm">{catIcon(r.categoria)}</div>
+                      <div className="info">
+                        <h3>{r.titulo}</h3>
+                        <div className="meta-row">
+                          <span>⏱ {r.tiempo || '—'} min</span>
+                          <span>◷ {servingsBase} porc.</span>
+                          <span>{catLabel(r.categoria)}</span>
+                        </div>
+                      </div>
+                      {kcalPerServing>0 && <div className="kcal-badge">{kcalPerServing} kcal</div>}
                     </div>
-                  </div>
-                  {kcalPerServing>0 && <div className="kcal-badge">{kcalPerServing} kcal</div>}
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </main>
+                  );
+                })}
+              </div>
+            )}
+          </main>
 
-      <button className="fab" onClick={()=>setView({screen:"form", id:null})} aria-label="Añadir receta">+</button>
+          <button className="fab" onClick={()=>setView({screen:"form", id:null})} aria-label="Añadir receta">+</button>
+        </React.Fragment>
+      )}
+
+      {tab==="calendario" && (
+        <CalendarScreen
+          recetas={recetas}
+          plan={plan}
+          onSetPlanSlot={setPlanSlot}
+        />
+      )}
+
+      <nav className="bottom-nav">
+        <button className={"bottom-nav-item"+(tab==="recetario"?" active":"")} onClick={()=>setTab("recetario")}>
+          <span className="bottom-nav-icon">📖</span>
+          <span>Recetario</span>
+        </button>
+        <button className={"bottom-nav-item"+(tab==="calendario"?" active":"")} onClick={()=>setTab("calendario")}>
+          <span className="bottom-nav-icon">📅</span>
+          <span>Calendario</span>
+        </button>
+      </nav>
 
       {view.screen==="detail" && (
         <DetailScreen
@@ -659,6 +863,218 @@ function DetailScreen({ recipe, onClose, onEdit, onDelete }){
   );
 }
 
+// ---------- Calendario de planificación ----------
+function CalendarScreen({ recetas, plan, onSetPlanSlot }){
+  const today = new Date();
+  const [cursor, setCursor] = useState(new Date(today.getFullYear(), today.getMonth(), 1));
+  const [selectedDay, setSelectedDay] = useState(null); // Date | null
+
+  const recetaById = (id)=> recetas.find(r=>r.id===id);
+
+  // kcal totales planificadas para un día (suma de las 4 franjas)
+  const kcalDelDia = (fechaKey)=>{
+    const dia = plan[fechaKey];
+    if(!dia) return 0;
+    return FRANJAS.reduce((sum,f)=>{
+      const receta = dia[f.id] ? recetaById(dia[f.id]) : null;
+      return sum + (receta ? kcalPorPorcion(receta) : 0);
+    }, 0);
+  };
+  const recetasDelDia = (fechaKey)=>{
+    const dia = plan[fechaKey];
+    if(!dia) return 0;
+    return FRANJAS.filter(f=>dia[f.id]).length;
+  };
+
+  // --- construir cuadrícula del mes (lunes a domingo) ---
+  const year = cursor.getFullYear();
+  const month = cursor.getMonth();
+  const firstOfMonth = new Date(year, month, 1);
+  const startWeekday = (firstOfMonth.getDay()+6)%7; // 0=lunes
+  const daysInMonth = new Date(year, month+1, 0).getDate();
+  const gridDays = [];
+  for(let i=0;i<startWeekday;i++){
+    const d = new Date(year, month, 1-(startWeekday-i));
+    gridDays.push({ date:d, otherMonth:true });
+  }
+  for(let d=1; d<=daysInMonth; d++){
+    gridDays.push({ date:new Date(year,month,d), otherMonth:false });
+  }
+  while(gridDays.length % 7 !== 0){
+    const last = gridDays[gridDays.length-1].date;
+    const d = new Date(last);
+    d.setDate(d.getDate()+1);
+    gridDays.push({ date:d, otherMonth:true });
+  }
+
+  // --- promedio semanal (semana actual, lunes-domingo) y mensual (mes en curso real, no el navegado) ---
+  const calcPromedio = (fechas)=>{
+    const dias = fechas.filter(key => plan[key] && recetasDelDia(key)>0);
+    if(dias.length===0) return 0;
+    const total = dias.reduce((sum,key)=> sum + kcalDelDia(key), 0);
+    return Math.round(total/dias.length);
+  };
+  const startOfWeek = new Date(today);
+  startOfWeek.setDate(today.getDate() - ((today.getDay()+6)%7));
+  const semanaKeys = Array.from({length:7}, (_,i)=>{
+    const d = new Date(startOfWeek); d.setDate(startOfWeek.getDate()+i);
+    return fechaToKey(d);
+  });
+  const diasEnMesActual = new Date(today.getFullYear(), today.getMonth()+1, 0).getDate();
+  const mesKeys = Array.from({length:diasEnMesActual}, (_,i)=> fechaToKey(new Date(today.getFullYear(), today.getMonth(), i+1)));
+  const promedioSemanal = calcPromedio(semanaKeys);
+  const promedioMensual = calcPromedio(mesKeys);
+
+  return (
+    <React.Fragment>
+      <div className="topbar">
+        <div className="brand">
+          <div className="stamp">📅</div>
+          <h1 className="serif">Planificador</h1>
+        </div>
+      </div>
+
+      <div className="cal-main">
+        <div className="cal-header">
+          <button className="cal-nav-btn" onClick={()=>setCursor(new Date(year, month-1, 1))} aria-label="Mes anterior">‹</button>
+          <h2 className="serif">{MESES[month]} {year}</h2>
+          <button className="cal-nav-btn" onClick={()=>setCursor(new Date(year, month+1, 1))} aria-label="Mes siguiente">›</button>
+        </div>
+        <button className="cal-today-btn" onClick={()=>setCursor(new Date(today.getFullYear(), today.getMonth(), 1))}>Ir a hoy</button>
+
+        <div className="cal-summary-row">
+          <div className="cal-summary-box">
+            <div className="num">{promedioSemanal || '—'}</div>
+            <div className="lbl">Media diaria semana</div>
+          </div>
+          <div className="cal-summary-box">
+            <div className="num">{promedioMensual || '—'}</div>
+            <div className="lbl">Media diaria mes</div>
+          </div>
+        </div>
+
+        <div className="cal-weekdays">
+          {DIAS_SEMANA.map(d=> <span key={d}>{d}</span>)}
+        </div>
+        <div className="cal-grid">
+          {gridDays.map((gd,idx)=>{
+            const key = fechaToKey(gd.date);
+            const kcal = Math.round(kcalDelDia(key));
+            const numRecetas = recetasDelDia(key);
+            const isToday = isSameDay(gd.date, today);
+            return (
+              <div
+                key={idx}
+                className={"cal-day"+(gd.otherMonth?" other-month":"")+(isToday?" today":"")}
+                onClick={()=>setSelectedDay(gd.date)}
+              >
+                <span className="daynum">{gd.date.getDate()}</span>
+                {kcal>0 && <span className="daykcal">{kcal}</span>}
+                {numRecetas>0 && (
+                  <div className="daydots">
+                    {Array.from({length:Math.min(numRecetas,4)}).map((_,i)=><span key={i} className="daydot"></span>)}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {selectedDay && (
+        <DayPanel
+          date={selectedDay}
+          plan={plan[fechaToKey(selectedDay)]}
+          recetaById={recetaById}
+          recetas={recetas}
+          onClose={()=>setSelectedDay(null)}
+          onSetSlot={(franjaId, recetaId)=> onSetPlanSlot(fechaToKey(selectedDay), franjaId, recetaId)}
+        />
+      )}
+    </React.Fragment>
+  );
+}
+
+function DayPanel({ date, plan, recetaById, recetas, onClose, onSetSlot }){
+  const [pickerFor, setPickerFor] = useState(null); // franjaId | null
+
+  const dia = plan || {};
+  const total = FRANJAS.reduce((sum,f)=>{
+    const r = dia[f.id] ? recetaById(dia[f.id]) : null;
+    return sum + (r ? kcalPorPorcion(r) : 0);
+  }, 0);
+
+  const fechaLabel = date.toLocaleDateString('es-ES', { weekday:'long', day:'numeric', month:'long' });
+
+  return (
+    <div className="day-panel-overlay" onClick={onClose}>
+      <div className="day-panel" onClick={e=>e.stopPropagation()}>
+        <div className="day-panel-handle"></div>
+        <h3 className="serif">{fechaLabel}</h3>
+        <div className="day-total">{total>0 ? `${Math.round(total)} kcal planificadas` : 'Sin recetas planificadas'}</div>
+
+        {FRANJAS.map(f=>{
+          const recetaId = dia[f.id];
+          const receta = recetaId ? recetaById(recetaId) : null;
+          return (
+            <div className="franja-block" key={f.id}>
+              <div className="franja-label">{f.icon} {f.label}</div>
+              {receta ? (
+                <div className="franja-slot">
+                  <span className="slot-recipe-name">{receta.titulo}</span>
+                  <span className="slot-kcal">{Math.round(kcalPorPorcion(receta))} kcal</span>
+                  <button className="slot-remove" onClick={()=>onSetSlot(f.id, null)} aria-label="Quitar">×</button>
+                </div>
+              ) : (
+                <div className="franja-slot empty" onClick={()=>setPickerFor(f.id)}>
+                  + Añadir receta
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      {pickerFor && (
+        <RecipePicker
+          recetas={recetas}
+          franjaLabel={FRANJAS.find(f=>f.id===pickerFor).label}
+          onSelect={(recetaId)=>{ onSetSlot(pickerFor, recetaId); setPickerFor(null); }}
+          onClose={()=>setPickerFor(null)}
+        />
+      )}
+    </div>
+  );
+}
+
+function RecipePicker({ recetas, franjaLabel, onSelect, onClose }){
+  const [search, setSearch] = useState("");
+  const filtered = recetas.filter(r=> r.titulo.toLowerCase().includes(search.toLowerCase()));
+
+  return (
+    <div className="recipe-picker-overlay" onClick={onClose}>
+      <div className="recipe-picker" onClick={e=>e.stopPropagation()}>
+        <h3>Elegir receta para {franjaLabel.toLowerCase()}</h3>
+        <div className="search-wrap" style={{marginBottom:14}}>
+          <span className="search-icon">⌕</span>
+          <input placeholder="Buscar receta…" value={search} onChange={e=>setSearch(e.target.value)} autoFocus />
+        </div>
+        {filtered.length===0 ? (
+          <div className="recipe-picker-empty">
+            {recetas.length===0 ? "Aún no tienes recetas guardadas." : "No hay recetas que coincidan."}
+          </div>
+        ) : filtered.map(r=>(
+          <div className="recipe-picker-item" key={r.id} onClick={()=>onSelect(r.id)}>
+            <div className="stamp-sm">{catIcon(r.categoria)}</div>
+            <span className="name">{r.titulo}</span>
+            <span className="kcal">{Math.round(kcalPorPorcion(r))} kcal</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 // ---------- Form screen (create/edit) ----------
 function emptyIngredient(){
   return { id: uid(), nombre:"", cantidad:"", unidad:"g", kcalTotal:"", kcalMode:"manual", kcal100:"" };
@@ -691,6 +1107,8 @@ function FormScreen({ recipe, onClose, onSave, alimentosPersonales, onSaveAlimen
   const [pasos, setPasos] = useState(recipe && recipe.pasos && recipe.pasos.length ? [...recipe.pasos] : [""]);
   const [notas, setNotas] = useState(recipe? (recipe.notas||"") : "");
   const [destacada, setDestacada] = useState(recipe? !!recipe.destacada : false);
+  const [suggestOpenFor, setSuggestOpenFor] = useState(null); // id del ingrediente con sugerencias abiertas
+  const [suggestions, setSuggestions] = useState([]);
 
   const canSave = titulo.trim().length>0;
 
@@ -744,6 +1162,29 @@ function FormScreen({ recipe, onClose, onSave, alimentosPersonales, onSaveAlimen
     if(ing.kcalMode==="manual" && ing.nombre.trim() && ing.kcal100 && !isNaN(parseFloat(ing.kcal100))){
       onSaveAlimentoPersonal(ing.nombre.trim(), ing.kcal100);
     }
+  };
+
+  // mientras se escribe el nombre, muestra sugerencias de la tabla personal + tabla local
+  const handleNombreChange = (ing, newNombre)=>{
+    updateIngredient(ing.id, {nombre:newNombre});
+    if(ing.kcalMode==="auto") triggerLookup({...ing, nombre:newNombre});
+    const matches = suggestFoods(newNombre, alimentosPersonales, 5);
+    setSuggestions(matches);
+    setSuggestOpenFor(matches.length>0 ? ing.id : null);
+  };
+
+  // al elegir una sugerencia, se rellena nombre + kcal100 y se recalcula el total, sin importar el modo
+  const handleSelectSuggestion = (ing, sugerencia)=>{
+    const kcalTotal = calcKcalTotalFromBase(sugerencia.kcal100, ing.cantidad, ing.unidad);
+    updateIngredient(ing.id, {
+      nombre: sugerencia.nombre,
+      kcal100: sugerencia.kcal100.toString(),
+      kcalTotal,
+      lookupStatus: "found",
+      origen: sugerencia.origen,
+    });
+    setSuggestOpenFor(null);
+    setSuggestions([]);
   };
 
   const handleSave = ()=>{
@@ -814,15 +1255,33 @@ function FormScreen({ recipe, onClose, onSave, alimentosPersonales, onSaveAlimen
         <div className="section-label">Ingredientes</div>
         {ingredientes.map((ing)=>(
           <div className="ing-form-row" key={ing.id}>
-            <div className="top-line">
+            <div className="top-line" style={{position:'relative'}}>
               <input
                 placeholder="Ingrediente (ej. arroz)"
                 value={ing.nombre}
-                onChange={e=>{
-                  updateIngredient(ing.id, {nombre:e.target.value});
-                  if(ing.kcalMode==="auto") triggerLookup({...ing, nombre:e.target.value});
+                autoComplete="off"
+                onChange={e=>handleNombreChange(ing, e.target.value)}
+                onFocus={()=>{
+                  const matches = suggestFoods(ing.nombre, alimentosPersonales, 5);
+                  setSuggestions(matches);
+                  setSuggestOpenFor(matches.length>0 ? ing.id : null);
                 }}
+                onBlur={()=> setTimeout(()=>setSuggestOpenFor(prev=> prev===ing.id ? null : prev), 150)}
               />
+              {suggestOpenFor===ing.id && suggestions.length>0 && (
+                <div className="suggest-dropdown">
+                  {suggestions.map((s,idx)=>(
+                    <div
+                      key={idx}
+                      className="suggest-item"
+                      onMouseDown={()=>handleSelectSuggestion(ing, s)}
+                    >
+                      <span className="suggest-name">{s.nombre}</span>
+                      <span className="suggest-kcal">{s.kcal100} kcal/100{s.origen==="personal" ? " · tu tabla" : ""}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
               <input
                 placeholder="Cant."
                 type="number" min="0" step="any"

@@ -51,9 +51,32 @@ En la página del repositorio recién creado:
 
 ## Actualizaciones futuras
 
-Si en algún momento quieres que te haga cambios o mejoras a la app, puedo dártelos
-de la misma forma: solo tendrás que repetir el Paso 2 (subir los archivos nuevos,
-sobrescribiendo los anteriores) y los cambios se reflejarán en la misma URL.
+Cuando recibas una nueva versión de la app (un ZIP nuevo), la forma más fiable
+de actualizarla es usando **GitHub Codespaces** (evita problemas con arrastrar
+archivos a mano):
+
+1. Ve a tu repositorio en `github.com` → botón verde **"<> Code"** → pestaña
+   **Codespaces** → abre el que ya tenías, o crea uno nuevo.
+2. En la terminal del Codespace, borra los archivos viejos:
+   ```
+   rm -f README.md fooddb.js icon-192.png icon-512.png index.html manifest.json sw.js
+   rm -rf vendor
+   ```
+3. Sube el ZIP nuevo: clic derecho en el panel de archivos de la izquierda →
+   **Upload...** → selecciona el ZIP descargado.
+4. Descomprímelo y sube los cambios (ajusta el nombre del zip si tiene algo
+   como " (1)" añadido por el navegador):
+   ```
+   unzip mi-recetario-app.zip
+   rm mi-recetario-app.zip
+   git add .
+   git commit -m "Actualización"
+   git push
+   ```
+5. Espera 1-2 minutos y abre tu app en el móvil **una vez en modo incógnito**
+   para forzar que descargue la versión nueva (el service worker cachea la
+   app para que funcione offline, así que a veces tarda un poco en notar que
+   hay cambios).
 
 ## Sobre las calorías
 
@@ -69,5 +92,21 @@ cantidad que introduzcas. Hay dos formas de obtener ese valor de partida:
   de ~130 alimentos básicos (carnes, verduras, cereales, lácteos, etc.) —
   todo sin necesitar internet.
 
+Mientras escribes el nombre de cualquier ingrediente, aparece un desplegable
+de sugerencias combinando tu tabla personal y la tabla local — tocando una
+sugerencia se rellena el nombre y las kcal/100g automáticamente.
+
 Si un ingrediente no está en ninguna tabla, simplemente introduce las kcal/100g
 a mano una vez y quedará disponible para siempre.
+
+## Planificador / Calendario
+
+En la pestaña "Calendario" puedes planificar tus comidas en una vista mensual:
+
+- Cada día tiene 4 franjas: Desayuno, Comida, Cena y Otros (meriendas, snacks…).
+- Toca un día para abrir el panel y asignar una receta ya guardada a cada franja.
+- El calendario muestra las kcal totales planificadas para cada día con datos.
+- Arriba se muestra la media diaria de kcal de la semana actual y del mes actual
+  (calculada solo sobre los días que tengan al menos una receta planificada).
+- Puedes navegar a meses anteriores o futuros con las flechas, o volver al mes
+  actual con "Ir a hoy".

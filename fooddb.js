@@ -199,3 +199,52 @@ function searchLocalFoodDB(query){
   }
   return best;
 }
+
+// Devuelve hasta `limit` sugerencias combinando tabla personal (prioridad) + tabla local,
+// para mostrar en un desplegable de autocompletado mientras el usuario escribe.
+function suggestFoods(query, alimentosPersonales, limit){
+  limit = limit || 5;
+  if(!query || query.trim().length < 1) return [];
+  const q = normalize(query);
+  const results = [];
+  const seen = new Set();
+
+  // 1. tabla personal primero (más relevante para el usuario)
+  (alimentosPersonales || []).forEach(food=>{
+    const n = normalize(food.nombre);
+    if(n.includes(q)){
+      if(!seen.has(n)){
+        seen.add(n);
+        results.push({ nombre: food.nombre, kcal100: food.kcal100, origen: "personal" });
+      }
+    }
+  });
+
+  // 2. tabla local incorporada
+  FOOD_DB.forEach(food=>{
+    for(const alias of food.alias){
+      const a = normalize(alias);
+      if(a.includes(q)){
+        const key = normalize(food.nombre);
+        if(!seen.has(key)){
+          seen.add(key);
+          results.push({ nombre: food.nombre, kcal100: food.kcal100, origen: "tabla" });
+        }
+        break;
+      }
+    }
+  });
+
+  // ordenar: tabla personal siempre primero, luego coincidencias que empiezan por la query, luego alfabético
+  results.sort((a,b)=>{
+    const aPersonal = a.origen==="personal" ? 0 : 1;
+    const bPersonal = b.origen==="personal" ? 0 : 1;
+    if(aPersonal !== bPersonal) return aPersonal - bPersonal;
+    const aStarts = normalize(a.nombre).startsWith(q) ? 0 : 1;
+    const bStarts = normalize(b.nombre).startsWith(q) ? 0 : 1;
+    if(aStarts !== bStarts) return aStarts - bStarts;
+    return a.nombre.localeCompare(b.nombre);
+  });
+
+  return results.slice(0, limit);
+}
