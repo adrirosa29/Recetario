@@ -112,10 +112,29 @@ En la pestaña "Calendario" puedes planificar tus comidas en una vista mensual:
   kcal totales — se guarda automáticamente en tu recetario como una receta de
   un solo ingrediente, así no tienes que volver a escribirlo otro día.
 - El calendario muestra las kcal totales planificadas para cada día con datos.
-- A la derecha de cada semana hay una columna con la **media diaria de esa
-  semana**, y arriba se muestra la media diaria del mes actual (calculada
-  solo sobre los días que tengan algo planificado).
 - Los días que ya han pasado se muestran con un tono más apagado para
   diferenciarlos claramente de los días futuros.
 - Puedes navegar a meses anteriores o futuros con las flechas, o volver al mes
   actual con "Ir a hoy".
+
+## Estadísticas
+
+En la pestaña "Estadísticas" puedes ver:
+
+- Las kcal planificadas para hoy.
+- La media diaria de kcal de la semana actual y del mes actual (calculada
+  solo sobre los días que tengan algo planificado).
+- La **media de kcal por franja** (Desayuno/Comida/Cena/Otros), con una barra
+  visual proporcional, para ver de un vistazo si sueles comer más fuerte en
+  el desayuno, la comida o la cena.
+- Un ranking de las recetas que más repites en tu planificación, contando
+  todas las veces que las has asignado a cualquier día y franja.
+
+## Sobre la IA para estimar calorías
+
+Se valoró conectar la app a un modelo de IA (como Claude) para estimar kcal
+de platos sin datos exactos (p. ej. una ración de calamares en un
+restaurante). Es técnicamente posible y el coste por consulta sería mínimo,
+pero requeriría una clave de API de pago y un pequeño servidor intermedio
+para no exponer esa clave públicamente — se decidió no añadir esa pieza extra
+y, en su lugar, ampliar mucho la tabla local de alimentos.

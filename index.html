@@ -175,22 +175,10 @@
   .cal-summary-box .num{ font-size:18px; font-weight:700; color:var(--terracota); }
   .cal-summary-box .lbl{ font-size:10px; color:#8a8071; text-transform:uppercase; letter-spacing:0.3px; margin-top:2px; }
 
-  .cal-grid-wrap{ display:flex; flex-direction:column; }
-  .cal-weekdays{ display:flex; margin-bottom:6px; }
-  .cal-weekdays > span{ flex:1; text-align:center; font-size:11px; color:#a39a8c; font-weight:700; }
-  .cal-weekdays-avg{
-    flex:0 0 44px; text-align:center; font-size:9.5px; color:var(--oliva); font-weight:700;
-    text-transform:uppercase; letter-spacing:0.2px;
-  }
+  .cal-weekdays{ display:grid; grid-template-columns:repeat(7,1fr); margin-bottom:6px; }
+  .cal-weekdays span{ text-align:center; font-size:11px; color:#a39a8c; font-weight:700; }
 
-  .cal-week-row{ display:flex; align-items:stretch; gap:6px; margin-bottom:5px; }
-  .cal-grid{ flex:1; display:grid; grid-template-columns:repeat(7,1fr); gap:5px; }
-  .cal-week-avg{
-    flex:0 0 44px; display:flex; align-items:center; justify-content:center;
-    background:var(--crema-osc); border:1px solid var(--linea); border-radius:10px;
-    font-size:12px; font-weight:700; color:var(--terracota); text-align:center; padding:2px;
-  }
-
+  .cal-grid{ display:grid; grid-template-columns:repeat(7,1fr); gap:5px; }
   .cal-day{
     aspect-ratio:1; border-radius:10px; border:1px solid var(--linea); background:var(--blanco-papel);
     display:flex; flex-direction:column; align-items:center; justify-content:center;
@@ -206,6 +194,43 @@
   .cal-day .daykcal{ font-size:9px; color:var(--terracota); font-weight:700; }
   .cal-day .daydots{ display:flex; gap:2px; margin-top:1px; }
   .cal-day .daydot{ width:4px; height:4px; border-radius:50%; background:var(--oliva); }
+
+  /* ---- Estadísticas ---- */
+  .stats-row{ display:flex; gap:10px; margin-bottom:8px; }
+  .stats-box{
+    flex:1; background:var(--blanco-papel); border:1px solid var(--linea); border-radius:16px;
+    padding:16px 10px; text-align:center;
+  }
+  .stats-num{ font-size:24px; font-weight:700; color:var(--terracota); line-height:1.1; }
+  .stats-lbl{ font-size:10.5px; color:#8a8071; text-transform:uppercase; letter-spacing:0.3px; margin-top:6px; line-height:1.3; }
+
+  .ranking-list{ display:flex; flex-direction:column; gap:8px; }
+  .ranking-item{
+    display:flex; align-items:center; gap:12px; background:var(--blanco-papel);
+    border:1px solid var(--linea); border-radius:14px; padding:10px 14px;
+  }
+  .ranking-pos{
+    width:22px; flex-shrink:0; text-align:center; font-size:13px; font-weight:700; color:#a39a8c;
+    font-family:'fallback-serif',serif;
+  }
+  .ranking-item .stamp-sm{ width:38px; height:38px; font-size:17px; flex-shrink:0; }
+  .ranking-name{ flex:1; min-width:0; font-size:14.5px; font-weight:600; color:var(--carbon); }
+  .ranking-count{ font-size:13px; font-weight:700; color:var(--oliva); flex-shrink:0; }
+
+  .franja-stats-list{ display:flex; flex-direction:column; gap:10px; margin-bottom:8px; }
+  .franja-stats-item{
+    display:flex; align-items:center; gap:10px; background:var(--blanco-papel);
+    border:1px solid var(--linea); border-radius:14px; padding:12px 14px;
+  }
+  .franja-stats-icon{ font-size:16px; flex-shrink:0; width:20px; text-align:center; }
+  .franja-stats-label{ font-size:13.5px; font-weight:600; color:var(--carbon); flex:0 0 70px; flex-shrink:0; }
+  .franja-stats-bar-wrap{
+    flex:1; height:8px; background:var(--crema-osc); border-radius:100px; overflow:hidden; min-width:0;
+  }
+  .franja-stats-bar{
+    height:100%; background:var(--terracota); border-radius:100px; transition:width .3s ease;
+  }
+  .franja-stats-num{ font-size:13px; font-weight:700; color:var(--terracota); flex-shrink:0; width:64px; text-align:right; }
 
   /* ---- panel de día (slide-up) ---- */
   .day-panel-overlay{
@@ -814,6 +839,10 @@ function App(){
         />
       )}
 
+      {tab==="estadisticas" && (
+        <StatsScreen recetas={recetas} plan={plan} />
+      )}
+
       <nav className="bottom-nav">
         <button className={"bottom-nav-item"+(tab==="recetario"?" active":"")} onClick={()=>setTab("recetario")}>
           <span className="bottom-nav-icon">📖</span>
@@ -822,6 +851,10 @@ function App(){
         <button className={"bottom-nav-item"+(tab==="calendario"?" active":"")} onClick={()=>setTab("calendario")}>
           <span className="bottom-nav-icon">📅</span>
           <span>Calendario</span>
+        </button>
+        <button className={"bottom-nav-item"+(tab==="estadisticas"?" active":"")} onClick={()=>setTab("estadisticas")}>
+          <span className="bottom-nav-icon">📊</span>
+          <span>Estadísticas</span>
         </button>
       </nav>
 
@@ -1002,11 +1035,6 @@ function CalendarScreen({ recetas, plan, onAddToSlot, onRemoveFromSlot, onCreate
     d.setDate(d.getDate()+1);
     gridDays.push({ date:d, otherMonth:true });
   }
-  // agrupar en semanas de 7 para poder calcular la media de cada fila
-  const weeks = [];
-  for(let i=0;i<gridDays.length;i+=7){
-    weeks.push(gridDays.slice(i,i+7));
-  }
 
   // --- promedio mensual (mes en curso real, no el navegado) ---
   const calcPromedio = (fechas)=>{
@@ -1043,41 +1071,29 @@ function CalendarScreen({ recetas, plan, onAddToSlot, onRemoveFromSlot, onCreate
           </div>
         </div>
 
-        <div className="cal-grid-wrap">
-          <div className="cal-weekdays">
-            {DIAS_SEMANA.map(d=> <span key={d}>{d}</span>)}
-            <span className="cal-weekdays-avg">Media</span>
-          </div>
-          {weeks.map((week, wIdx)=>{
-            const weekKeys = week.map(gd=>fechaToKey(gd.date));
-            const weekAvg = calcPromedio(weekKeys);
+        <div className="cal-weekdays">
+          {DIAS_SEMANA.map(d=> <span key={d}>{d}</span>)}
+        </div>
+        <div className="cal-grid">
+          {gridDays.map((gd,idx)=>{
+            const key = fechaToKey(gd.date);
+            const kcal = Math.round(kcalDelDia(key));
+            const numElementos = elementosDelDia(key);
+            const isToday = isSameDay(gd.date, today);
+            const isPast = gd.date < todayStart && !isToday;
             return (
-              <div className="cal-week-row" key={wIdx}>
-                <div className="cal-grid">
-                  {week.map((gd,idx)=>{
-                    const key = fechaToKey(gd.date);
-                    const kcal = Math.round(kcalDelDia(key));
-                    const numElementos = elementosDelDia(key);
-                    const isToday = isSameDay(gd.date, today);
-                    const isPast = gd.date < todayStart && !isToday;
-                    return (
-                      <div
-                        key={idx}
-                        className={"cal-day"+(gd.otherMonth?" other-month":"")+(isToday?" today":"")+(isPast?" past":"")}
-                        onClick={()=>setSelectedDay(gd.date)}
-                      >
-                        <span className="daynum">{gd.date.getDate()}</span>
-                        {kcal>0 && <span className="daykcal">{kcal}</span>}
-                        {numElementos>0 && (
-                          <div className="daydots">
-                            {Array.from({length:Math.min(numElementos,4)}).map((_,i)=><span key={i} className="daydot"></span>)}
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-                <div className="cal-week-avg">{weekAvg || '—'}</div>
+              <div
+                key={idx}
+                className={"cal-day"+(gd.otherMonth?" other-month":"")+(isToday?" today":"")+(isPast?" past":"")}
+                onClick={()=>setSelectedDay(gd.date)}
+              >
+                <span className="daynum">{gd.date.getDate()}</span>
+                {kcal>0 && <span className="daykcal">{kcal}</span>}
+                {numElementos>0 && (
+                  <div className="daydots">
+                    {Array.from({length:Math.min(numElementos,4)}).map((_,i)=><span key={i} className="daydot"></span>)}
+                  </div>
+                )}
               </div>
             );
           })}
@@ -1226,6 +1242,153 @@ function RecipePicker({ recetas, franjaLabel, onSelect, onCreateQuickExtra, onCl
         )}
       </div>
     </div>
+  );
+}
+
+// ---------- Estadísticas ----------
+function StatsScreen({ recetas, plan }){
+  const today = new Date();
+  const todayKey = fechaToKey(today);
+  const recetaById = (id)=> recetas.find(r=>r.id===id);
+
+  const franjaList = (dia, franjaId)=>{
+    if(!dia) return [];
+    const val = dia[franjaId];
+    if(Array.isArray(val)) return val;
+    if(val) return [val];
+    return [];
+  };
+
+  const kcalDelDia = (fechaKey)=>{
+    const dia = plan[fechaKey];
+    if(!dia) return 0;
+    return FRANJAS.reduce((sum,f)=>{
+      const ids = franjaList(dia, f.id);
+      return sum + ids.reduce((s,id)=>{
+        const receta = recetaById(id);
+        return s + (receta ? kcalPorPorcion(receta) : 0);
+      }, 0);
+    }, 0);
+  };
+  const elementosDelDia = (fechaKey)=>{
+    const dia = plan[fechaKey];
+    if(!dia) return 0;
+    return FRANJAS.reduce((sum,f)=> sum + franjaList(dia,f.id).length, 0);
+  };
+  const calcPromedio = (fechas)=>{
+    const dias = fechas.filter(key => elementosDelDia(key)>0);
+    if(dias.length===0) return 0;
+    const total = dias.reduce((sum,key)=> sum + kcalDelDia(key), 0);
+    return Math.round(total/dias.length);
+  };
+
+  const kcalHoy = Math.round(kcalDelDia(todayKey));
+
+  const startOfWeek = new Date(today);
+  startOfWeek.setDate(today.getDate() - ((today.getDay()+6)%7));
+  const semanaKeys = Array.from({length:7}, (_,i)=>{
+    const d = new Date(startOfWeek); d.setDate(startOfWeek.getDate()+i);
+    return fechaToKey(d);
+  });
+  const promedioSemanal = calcPromedio(semanaKeys);
+
+  const diasEnMesActual = new Date(today.getFullYear(), today.getMonth()+1, 0).getDate();
+  const mesKeys = Array.from({length:diasEnMesActual}, (_,i)=> fechaToKey(new Date(today.getFullYear(), today.getMonth(), i+1)));
+  const promedioMensual = calcPromedio(mesKeys);
+
+  // --- media de kcal por franja (Desayuno/Comida/Cena/Otros), sobre todo el historial del plan ---
+  const kcalPorFranjaEnDia = (dia, franjaId)=>{
+    return franjaList(dia, franjaId).reduce((sum,id)=>{
+      const receta = recetaById(id);
+      return sum + (receta ? kcalPorPorcion(receta) : 0);
+    }, 0);
+  };
+  const mediasPorFranja = FRANJAS.map(f=>{
+    const diasConDatos = Object.values(plan).filter(dia => franjaList(dia, f.id).length>0);
+    if(diasConDatos.length===0) return { ...f, media:0 };
+    const total = diasConDatos.reduce((sum,dia)=> sum + kcalPorFranjaEnDia(dia, f.id), 0);
+    return { ...f, media: Math.round(total/diasConDatos.length) };
+  });
+
+  // --- ranking de recetas más planificadas (contando todas las apariciones en todo el historial del plan) ---
+  const conteo = {};
+  Object.values(plan).forEach(dia=>{
+    FRANJAS.forEach(f=>{
+      franjaList(dia, f.id).forEach(id=>{
+        conteo[id] = (conteo[id]||0) + 1;
+      });
+    });
+  });
+  const ranking = Object.entries(conteo)
+    .map(([id, veces])=> ({ receta: recetaById(id), veces }))
+    .filter(r=> r.receta)
+    .sort((a,b)=> b.veces - a.veces)
+    .slice(0, 8);
+
+  return (
+    <React.Fragment>
+      <div className="topbar">
+        <div className="brand">
+          <div className="stamp">📊</div>
+          <h1 className="serif">Estadísticas</h1>
+        </div>
+      </div>
+
+      <main>
+        <div className="section-label" style={{marginTop:0}}>Calorías planificadas</div>
+        <div className="stats-row">
+          <div className="stats-box">
+            <div className="stats-num">{kcalHoy || '—'}</div>
+            <div className="stats-lbl">Hoy</div>
+          </div>
+          <div className="stats-box">
+            <div className="stats-num">{promedioSemanal || '—'}</div>
+            <div className="stats-lbl">Media / día<br/>esta semana</div>
+          </div>
+          <div className="stats-box">
+            <div className="stats-num">{promedioMensual || '—'}</div>
+            <div className="stats-lbl">Media / día<br/>este mes</div>
+          </div>
+        </div>
+
+        <div className="section-label">Media de kcal por franja</div>
+        <div className="franja-stats-list">
+          {mediasPorFranja.map(f=>(
+            <div className="franja-stats-item" key={f.id}>
+              <span className="franja-stats-icon">{f.icon}</span>
+              <span className="franja-stats-label">{f.label}</span>
+              <div className="franja-stats-bar-wrap">
+                <div
+                  className="franja-stats-bar"
+                  style={{width: (f.media>0 ? Math.min(100, (f.media/Math.max(1,...mediasPorFranja.map(x=>x.media||1)))*100) : 0)+'%'}}
+                ></div>
+              </div>
+              <span className="franja-stats-num">{f.media>0 ? `${f.media} kcal` : '—'}</span>
+            </div>
+          ))}
+        </div>
+
+        <div className="section-label">Recetas más planificadas</div>
+        {ranking.length===0 ? (
+          <div className="empty" style={{padding:'40px 20px'}}>
+            <div className="stamp serif">📊</div>
+            <h3>Aún no hay datos</h3>
+            <p>Planifica algunas comidas en el calendario para ver aquí tus recetas más repetidas.</p>
+          </div>
+        ) : (
+          <div className="ranking-list">
+            {ranking.map((r,idx)=>(
+              <div className="ranking-item" key={r.receta.id}>
+                <span className="ranking-pos">{idx+1}</span>
+                <div className="stamp-sm">{catIcon(r.receta.categoria)}</div>
+                <span className="ranking-name">{r.receta.titulo}</span>
+                <span className="ranking-count">{r.veces}×</span>
+              </div>
+            ))}
+          </div>
+        )}
+      </main>
+    </React.Fragment>
   );
 }
 
