@@ -1,73 +1,38 @@
-# Mi Recetario — Guía de instalación
+const CACHE_NAME = 'recetario-v2';
+const ASSETS = [
+  './index.html', './manifest.json', './icon-192.png', './icon-512.png', './fooddb.js',
+  './vendor/react.production.min.js', './vendor/react-dom.production.min.js', './vendor/babel.min.js'
+];
 
-Esta es tu app personal de recetas. Funciona como una app real en tu móvil (PWA),
-sin pasar por App Store ni Google Play, y guarda todo en tu propio dispositivo.
+self.addEventListener('install', (event) => {
+  event.waitUntil(
+    caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS)).catch(()=>{})
+  );
+  self.skipWaiting();
+});
 
-## Paso 1 — Crear el repositorio en GitHub
+self.addEventListener('activate', (event) => {
+  event.waitUntil(
+    caches.keys().then((keys) =>
+      Promise.all(keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k)))
+    )
+  );
+  self.clients.claim();
+});
 
-1. Entra en https://github.com y crea una cuenta si no tienes (es gratis).
-2. Pulsa el botón **"New repository"** (o el `+` arriba a la derecha → "New repository").
-3. Ponle un nombre, por ejemplo `mi-recetario`.
-4. Marca la opción **"Public"** (tiene que ser público para que GitHub Pages funcione gratis).
-5. NO marques "Add a README file" (ya tienes el tuyo).
-6. Pulsa **"Create repository"**.
-
-## Paso 2 — Subir los archivos
-
-En la página del repositorio recién creado:
-
-1. Pulsa el enlace **"uploading an existing file"** (o "Add file" → "Upload files").
-2. Arrastra TODOS los archivos y carpetas que venían en este ZIP
-   (`index.html`, `manifest.json`, `sw.js`, `fooddb.js`, `icon-192.png`, `icon-512.png`,
-   y la carpeta `vendor` completa con sus 3 archivos dentro).
-3. Abajo, escribe un mensaje como "Primera versión" y pulsa **"Commit changes"**.
-
-> Importante: la carpeta `vendor` debe subirse como carpeta, manteniendo
-> `vendor/react.production.min.js`, `vendor/react-dom.production.min.js` y
-> `vendor/babel.min.js` dentro de ella. Si tu navegador no permite arrastrar carpetas
-> completas, sube los archivos sueltos de `vendor` y luego edita las 3 líneas de
-> `index.html` y `sw.js` que dicen `./vendor/...` quitando el `vendor/` si los subiste
-> todos en la raíz (avísame si llegas a este punto y te ayudo).
-
-## Paso 3 — Activar GitHub Pages
-
-1. En el repositorio, ve a **Settings** (pestaña arriba).
-2. En el menú lateral izquierdo, pulsa **Pages**.
-3. En "Source", selecciona la rama **main** y la carpeta **/ (root)**.
-4. Pulsa **Save**.
-5. Espera 1-2 minutos. GitHub te mostrará una URL parecida a:
-   `https://tu-usuario.github.io/mi-recetario/`
-
-## Paso 4 — Instalar la app en tu móvil
-
-1. Abre esa URL en el navegador de tu móvil (Chrome en Android, Safari en iPhone).
-2. **Android (Chrome):** te aparecerá un aviso para "Añadir a pantalla de inicio" o
-   "Instalar app". Si no aparece automáticamente, pulsa los tres puntos (⋮) arriba
-   a la derecha → "Añadir a pantalla de inicio".
-3. **iPhone (Safari):** pulsa el icono de compartir (cuadrado con flecha hacia arriba)
-   → "Añadir a pantalla de inicio".
-4. Listo. Tendrás un icono en tu móvil que abre la app a pantalla completa, como
-   cualquier otra app.
-
-## Actualizaciones futuras
-
-Si en algún momento quieres que te haga cambios o mejoras a la app, puedo dártelos
-de la misma forma: solo tendrás que repetir el Paso 2 (subir los archivos nuevos,
-sobrescribiendo los anteriores) y los cambios se reflejarán en la misma URL.
-
-## Sobre las calorías
-
-La app calcula las calorías de cada ingrediente a partir de las **kcal por
-cada 100g/100ml**, multiplicando por una sencilla regla de tres según la
-cantidad que introduzcas. Hay dos formas de obtener ese valor de partida:
-
-- **Kcal/100g manual**: lo escribes tú una vez. La app lo guarda automáticamente
-  en tu "tabla personal", así que la próxima vez que uses ese mismo ingrediente
-  en otra receta no tendrás que volver a escribirlo.
-- **Buscar en tabla**: busca primero en tu tabla personal (lo que ya hayas
-  guardado a mano antes) y, si no lo encuentra, en una tabla local incorporada
-  de ~130 alimentos básicos (carnes, verduras, cereales, lácteos, etc.) —
-  todo sin necesitar internet.
-
-Si un ingrediente no está en ninguna tabla, simplemente introduce las kcal/100g
-a mano una vez y quedará disponible para siempre.
+self.addEventListener('fetch', (event) => {
+  const url = new URL(event.request.url);
+  // Never cache external API calls (e.g. Open Food Facts) or CDN scripts - always go to network
+  if (url.origin !== self.location.origin) {
+    return;
+  }
+  event.respondWith(
+    caches.match(event.request).then((cached) => {
+      return cached || fetch(event.request).then((response) => {
+        const copy = response.clone();
+        caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
+        return response;
+      });
+    }).catch(() => caches.match('./index.html'))
+  );
+});
