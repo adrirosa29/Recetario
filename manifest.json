@@ -1,0 +1,852 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#4A5D3A">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Recetario">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="manifest" href="manifest.json">
+<title>Recetario</title>
+<style>
+  :root{
+    --crema:#FAF6EF;
+    --crema-osc:#F0E9DB;
+    --oliva:#4A5D3A;
+    --oliva-osc:#37452B;
+    --terracota:#C8704F;
+    --carbon:#2B2622;
+    --dorado:#D4A04C;
+    --linea:#E4DBC8;
+    --blanco-papel:#FFFDF9;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color: transparent;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--crema);
+    color:var(--carbon);
+    font-family:'Source Sans Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    -webkit-font-smoothing:antialiased;
+    overscroll-behavior-y: none;
+  }
+  @font-face{
+    font-family:'fallback-serif';
+    src:local('Georgia');
+  }
+  .serif{ font-family: 'Iowan Old Style','Palatino Linotype', Georgia, 'fallback-serif', serif; }
+  #root{min-height:100vh; display:flex; flex-direction:column;}
+
+  /* ---- Top bar ---- */
+  .topbar{
+    position:sticky; top:0; z-index:20;
+    background:var(--crema);
+    padding:calc(env(safe-area-inset-top) + 18px) 20px 14px;
+    border-bottom:1px solid var(--linea);
+    display:flex; align-items:center; justify-content:space-between;
+  }
+  .brand{ display:flex; align-items:center; gap:10px; }
+  .stamp{
+    width:34px;height:34px;border-radius:50%;
+    border:1.5px solid var(--oliva);
+    display:flex;align-items:center;justify-content:center;
+    font-family:'fallback-serif',serif; font-size:15px; color:var(--oliva); font-style:italic;
+    flex-shrink:0;
+  }
+  .brand h1{ font-size:21px; margin:0; font-weight:600; letter-spacing:-0.2px;}
+  .icon-btn{
+    width:40px;height:40px;border-radius:50%;
+    background:var(--oliva); color:var(--crema);
+    border:none; display:flex; align-items:center; justify-content:center;
+    font-size:22px; cursor:pointer; line-height:0;
+  }
+  .icon-btn:active{ transform: scale(0.94); }
+  .icon-btn.ghost{ background:transparent; color:var(--oliva); border:1.5px solid var(--oliva); }
+
+  main{ flex:1; padding:18px 20px 100px; max-width:640px; margin:0 auto; width:100%; }
+
+  /* ---- search ---- */
+  .search-wrap{ margin-bottom:18px; position:relative; }
+  .search-wrap input{
+    width:100%; padding:12px 16px 12px 40px; border-radius:14px;
+    border:1px solid var(--linea); background:var(--blanco-papel);
+    font-size:15px; color:var(--carbon);
+  }
+  .search-wrap input::placeholder{ color:#9b9182; }
+  .search-wrap input:focus{ outline:2px solid var(--oliva); outline-offset:1px; }
+  .search-icon{ position:absolute; left:14px; top:50%; transform:translateY(-50%); opacity:0.5; font-size:15px; }
+
+  .filters{ display:flex; gap:8px; overflow-x:auto; margin-bottom:20px; padding-bottom:4px; scrollbar-width:none; }
+  .filters::-webkit-scrollbar{display:none;}
+  .chip{
+    flex-shrink:0; padding:7px 14px; border-radius:100px; font-size:13px;
+    border:1px solid var(--linea); background:var(--blanco-papel); color:var(--carbon);
+    cursor:pointer; white-space:nowrap;
+  }
+  .chip.active{ background:var(--oliva); color:var(--crema); border-color:var(--oliva); }
+
+  /* ---- recipe cards (fichero) ---- */
+  .card-list{ display:flex; flex-direction:column; gap:12px; }
+  .recipe-card{
+    background:var(--blanco-papel);
+    border:1px solid var(--linea);
+    border-radius:16px;
+    padding:16px;
+    display:flex; gap:14px; align-items:center;
+    cursor:pointer;
+    position:relative;
+    transition:transform .12s ease;
+  }
+  .recipe-card:active{ transform: scale(0.985); }
+  .recipe-card .tab{
+    position:absolute; top:-1px; left:18px;
+    background:var(--dorado); color:var(--carbon);
+    font-size:10px; font-weight:700; letter-spacing:0.5px; text-transform:uppercase;
+    padding:3px 9px; border-radius:0 0 6px 6px;
+  }
+  .stamp-sm{
+    width:46px;height:46px;border-radius:50%;flex-shrink:0;
+    border:1.5px solid var(--oliva); color:var(--oliva);
+    display:flex;align-items:center;justify-content:center; font-size:20px;
+  }
+  .recipe-card .info{ flex:1; min-width:0; }
+  .recipe-card h3{ margin:2px 0 4px; font-size:17px; font-weight:600; }
+  .meta-row{ display:flex; gap:10px; font-size:12.5px; color:#7a7163; flex-wrap:wrap; }
+  .meta-row span{ display:flex; align-items:center; gap:3px; }
+  .kcal-badge{
+    font-size:12.5px; font-weight:700; color:var(--terracota);
+    background:rgba(200,112,79,0.1); padding:3px 9px; border-radius:8px; flex-shrink:0;
+  }
+
+  .empty{
+    text-align:center; padding:60px 20px; color:#9b9182;
+  }
+  .empty .stamp{ width:60px;height:60px;font-size:26px; margin:0 auto 16px; }
+  .empty h3{ color:var(--carbon); font-size:18px; margin-bottom:6px; }
+  .empty p{ font-size:14px; line-height:1.5; }
+
+  /* ---- FAB ---- */
+  .fab{
+    position:fixed; bottom:28px; right:24px; z-index:30;
+    width:58px;height:58px;border-radius:50%;
+    background:var(--terracota); color:white; border:none;
+    font-size:28px; box-shadow:0 6px 16px rgba(200,112,79,0.4);
+    cursor:pointer; display:flex; align-items:center; justify-content:center;
+  }
+  .fab:active{ transform: scale(0.92); }
+
+  /* ---- detail / form screens ---- */
+  .screen{
+    position:fixed; inset:0; background:var(--crema); z-index:40;
+    display:flex; flex-direction:column; overflow-y:auto;
+  }
+  .screen-top{
+    position:sticky; top:0; background:var(--crema);
+    padding:calc(env(safe-area-inset-top) + 16px) 18px 12px;
+    display:flex; align-items:center; justify-content:space-between;
+    border-bottom:1px solid var(--linea); z-index:5;
+  }
+  .screen-top .title{ font-size:16px; font-weight:600; }
+  .link-btn{ border:none; background:none; color:var(--oliva); font-size:15px; font-weight:600; cursor:pointer; padding:6px 4px;}
+  .link-btn.danger{ color:var(--terracota); }
+  .screen-body{ padding:20px; padding-bottom:120px; max-width:640px; margin:0 auto; width:100%; }
+
+  .hero-title{ font-size:28px; font-weight:700; margin:4px 0 8px; line-height:1.15; }
+  .hero-tag{ display:inline-block; background:var(--oliva); color:var(--crema); font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; padding:4px 10px; border-radius:100px; margin-bottom:14px;}
+  .stat-row{ display:flex; gap:10px; margin:16px 0 22px; }
+  .stat-box{
+    flex:1; background:var(--blanco-papel); border:1px solid var(--linea); border-radius:14px;
+    padding:12px 10px; text-align:center;
+  }
+  .stat-box .num{ font-size:19px; font-weight:700; color:var(--oliva); }
+  .stat-box .num.kcal{ color:var(--terracota); }
+  .stat-box .lbl{ font-size:10.5px; color:#8a8071; text-transform:uppercase; letter-spacing:0.4px; margin-top:2px;}
+
+  .portion-control{
+    display:flex; align-items:center; justify-content:center; gap:18px;
+    background:var(--blanco-papel); border:1px solid var(--linea); border-radius:16px;
+    padding:14px; margin-bottom:22px;
+  }
+  .portion-control button{
+    width:38px;height:38px;border-radius:50%; border:1.5px solid var(--oliva); background:transparent;
+    color:var(--oliva); font-size:20px; cursor:pointer; display:flex; align-items:center; justify-content:center;
+  }
+  .portion-control button:active{ background:var(--oliva); color:var(--crema); }
+  .portion-num{ font-size:22px; font-weight:700; min-width:70px; text-align:center; }
+  .portion-num small{ display:block; font-size:11px; font-weight:400; color:#8a8071; text-transform:uppercase; }
+
+  .section-label{
+    font-size:13px; font-weight:700; text-transform:uppercase; letter-spacing:0.6px;
+    color:var(--oliva); margin:26px 0 12px; display:flex; align-items:center; gap:8px;
+  }
+  .section-label::after{ content:''; flex:1; height:1px; background:var(--linea); }
+
+  .ingredient-row{
+    display:flex; align-items:baseline; justify-content:space-between; gap:10px;
+    padding:10px 0; border-bottom:1px solid var(--linea); font-size:15px;
+  }
+  .ingredient-row:last-child{ border-bottom:none; }
+  .ingredient-row .name{ flex:1; }
+  .ingredient-row .qty{ color:var(--oliva); font-weight:700; flex-shrink:0; font-family:'fallback-serif',serif; }
+  .ingredient-row .qty-kcal{ font-size:11.5px; color:#a39a8c; display:block; text-align:right; font-family:inherit; font-weight:400;}
+
+  .step-row{ display:flex; gap:14px; padding:14px 0; border-bottom:1px solid var(--linea); }
+  .step-row:last-child{ border-bottom:none; }
+  .step-num{
+    width:28px;height:28px;border-radius:50%; background:var(--crema-osc); color:var(--oliva);
+    display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:700; flex-shrink:0;
+    font-family:'fallback-serif',serif;
+  }
+  .step-text{ font-size:15px; line-height:1.5; padding-top:3px; }
+
+  .notes-box{
+    background:var(--crema-osc); border-left:3px solid var(--dorado); border-radius:0 12px 12px 0;
+    padding:14px 16px; font-size:14px; line-height:1.5; color:#544e42; font-style:italic;
+  }
+
+  /* ---- forms ---- */
+  .field{ margin-bottom:18px; }
+  .field label{ display:block; font-size:12.5px; font-weight:700; text-transform:uppercase; letter-spacing:0.4px; color:#7a7163; margin-bottom:7px; }
+  .field input, .field select, .field textarea{
+    width:100%; padding:12px 14px; border-radius:12px; border:1px solid var(--linea);
+    background:var(--blanco-papel); font-size:15px; color:var(--carbon); font-family:inherit;
+    min-width:0;
+  }
+  .field textarea{ resize:vertical; min-height:70px; }
+  .field input:focus, .field select:focus, .field textarea:focus{ outline:2px solid var(--oliva); outline-offset:1px; }
+  .field-row{ display:flex; gap:10px; }
+  .field-row .field{ flex:1; min-width:0; }
+
+  .ing-form-row{
+    background:var(--blanco-papel); border:1px solid var(--linea); border-radius:14px;
+    padding:14px; margin-bottom:10px; position:relative;
+  }
+  .ing-form-row .top-line{ display:flex; gap:6px; margin-bottom:8px; }
+  .ing-form-row .top-line input:first-child{ flex:1 1 auto; min-width:0; }
+  .ing-form-row .top-line input:nth-child(2){ flex:0 0 56px; min-width:0; padding-left:8px; padding-right:6px; }
+  .ing-form-row .top-line select{ flex:0 0 64px; min-width:0; padding-left:6px; padding-right:2px; font-size:13px; }
+  .ing-form-row .bottom-line{ display:flex; gap:8px; align-items:center; }
+  .ing-form-row .bottom-line input{ flex:1; min-width:0; }
+  .remove-x{
+    background:none;border:none; color:#b8ad9a; font-size:20px; cursor:pointer; padding:0 4px; line-height:1;
+  }
+  .kcal-lookup-status{ font-size:12px; margin-top:6px; }
+  .kcal-lookup-status.found{ color:var(--oliva); }
+  .kcal-lookup-status.searching{ color:#a39a8c; }
+  .kcal-lookup-status.none{ color:#b8ad9a; }
+
+  .add-ing-btn, .add-step-btn{
+    width:100%; padding:12px; border-radius:12px; border:1.5px dashed var(--linea);
+    background:transparent; color:var(--oliva); font-size:14px; font-weight:600; cursor:pointer;
+    margin-bottom:20px; margin-top:2px;
+  }
+  .step-form-row{ display:flex; gap:8px; margin-bottom:10px; align-items:flex-start; }
+  .step-form-row textarea{ flex:1; }
+
+  .save-bar{
+    position:fixed; bottom:0; left:0; right:0; background:var(--crema);
+    border-top:1px solid var(--linea); padding:14px 20px calc(env(safe-area-inset-bottom) + 14px);
+    z-index:50;
+  }
+  .save-bar button{
+    width:100%; padding:15px; border-radius:14px; border:none;
+    background:var(--oliva); color:var(--crema); font-size:16px; font-weight:700; cursor:pointer;
+  }
+  .save-bar button:active{ background:var(--oliva-osc); }
+  .save-bar button:disabled{ opacity:0.5; }
+
+  .toast{
+    position:fixed; bottom:100px; left:50%; transform:translateX(-50%);
+    background:var(--carbon); color:var(--crema); padding:10px 20px; border-radius:100px;
+    font-size:13.5px; z-index:90; opacity:0; transition:opacity .25s ease;
+    pointer-events:none; white-space:nowrap;
+  }
+  .toast.show{ opacity:1; }
+
+  .servings-type-toggle{ display:flex; gap:8px; margin-bottom:18px; }
+  .servings-type-toggle button{
+    flex:1; padding:10px; border-radius:12px; border:1.5px solid var(--linea); background:var(--blanco-papel);
+    color:var(--carbon); font-size:13.5px; font-weight:600; cursor:pointer;
+  }
+  .servings-type-toggle button.active{ background:var(--oliva); color:var(--crema); border-color:var(--oliva); }
+
+  ::-webkit-scrollbar{ width:0px; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script src="./vendor/react.production.min.js"></script>
+<script src="./vendor/react-dom.production.min.js"></script>
+<script src="./vendor/babel.min.js"></script>
+
+<script src="./fooddb.js"></script>
+<script type="text/babel" data-presets="react">
+const { useState, useEffect, useRef, useCallback } = React;
+
+// ---------- IndexedDB persistence ----------
+const DB_NAME = "recetario-db";
+const STORE = "recetas";
+function openDB(){
+  return new Promise((resolve,reject)=>{
+    const req = indexedDB.open(DB_NAME, 1);
+    req.onupgradeneeded = (e)=>{
+      const db = e.target.result;
+      if(!db.objectStoreNames.contains(STORE)){
+        db.createObjectStore(STORE, { keyPath: "id" });
+      }
+    };
+    req.onsuccess = ()=>resolve(req.result);
+    req.onerror = ()=>reject(req.error);
+  });
+}
+async function dbGetAll(){
+  const db = await openDB();
+  return new Promise((resolve,reject)=>{
+    const tx = db.transaction(STORE, "readonly");
+    const store = tx.objectStore(STORE);
+    const req = store.getAll();
+    req.onsuccess = ()=>resolve(req.result || []);
+    req.onerror = ()=>reject(req.error);
+  });
+}
+async function dbPut(recipe){
+  const db = await openDB();
+  return new Promise((resolve,reject)=>{
+    const tx = db.transaction(STORE, "readwrite");
+    tx.objectStore(STORE).put(recipe);
+    tx.oncomplete = ()=>resolve();
+    tx.onerror = ()=>reject(tx.error);
+  });
+}
+async function dbDelete(id){
+  const db = await openDB();
+  return new Promise((resolve,reject)=>{
+    const tx = db.transaction(STORE, "readwrite");
+    tx.objectStore(STORE).delete(id);
+    tx.oncomplete = ()=>resolve();
+    tx.onerror = ()=>reject(tx.error);
+  });
+}
+
+// ---------- helpers ----------
+const uid = ()=> Date.now().toString(36) + Math.random().toString(36).slice(2,8);
+
+const CATEGORIAS = [
+  {id:"desayuno", label:"Desayuno", icon:"☀"},
+  {id:"comida", label:"Comida", icon:"🍲"},
+  {id:"cena", label:"Cena", icon:"🌙"},
+  {id:"postre", label:"Postre", icon:"✦"},
+  {id:"snack", label:"Snack", icon:"●"},
+  {id:"bebida", label:"Bebida", icon:"◇"},
+];
+const catIcon = (id)=> (CATEGORIAS.find(c=>c.id===id)||{}).icon || "❋";
+const catLabel = (id)=> (CATEGORIAS.find(c=>c.id===id)||{}).label || "Receta";
+
+const UNIDADES = ["g","kg","ml","l","ud","cda","cdta","taza","pizca","al gusto"];
+
+function round1(n){ return Math.round(n*10)/10; }
+
+// total kcal for the recipe at BASE servings (sum of ingredient kcal contributions)
+function calcTotalKcalBase(ingredientes){
+  return ingredientes.reduce((sum,ing)=>{
+    const k = parseFloat(ing.kcalTotal);
+    return sum + (isNaN(k) ? 0 : k);
+  }, 0);
+}
+
+// scale a quantity from base servings to target servings
+function scaleQty(qty, baseServings, targetServings){
+  const q = parseFloat(qty);
+  if(isNaN(q) || !baseServings) return qty;
+  return q * (targetServings/baseServings);
+}
+
+function fmtQty(n){
+  if(n === "" || n===undefined || n===null || isNaN(n)) return "";
+  const r = Math.round(n*100)/100;
+  return (r % 1 === 0) ? r.toString() : r.toFixed(2).replace(/0$/,'').replace(/\.$/,'');
+}
+
+// ---------- Búsqueda nutricional local (tabla incorporada, sin red) ----------
+async function lookupKcalPer100g(query){
+  // Búsqueda instantánea en la tabla local (sin necesidad de red ni de esperar)
+  return searchLocalFoodDB(query);
+}
+
+// ---------- App ----------
+function App(){
+  const [recetas, setRecetas] = useState([]);
+  const [loaded, setLoaded] = useState(false);
+  const [view, setView] = useState({ screen:"list" }); // list | detail | form
+  const [search, setSearch] = useState("");
+  const [filtro, setFiltro] = useState("todas");
+  const [toast, setToast] = useState("");
+  const toastTimer = useRef(null);
+
+  useEffect(()=>{
+    dbGetAll().then(data=>{
+      setRecetas(data.sort((a,b)=> (b.creadoEn||0)-(a.creadoEn||0)));
+      setLoaded(true);
+    }).catch(()=>setLoaded(true));
+  },[]);
+
+  const showToast = useCallback((msg)=>{
+    setToast(msg);
+    clearTimeout(toastTimer.current);
+    toastTimer.current = setTimeout(()=>setToast(""), 1800);
+  },[]);
+
+  const saveRecipe = async (recipe)=>{
+    const toSave = { ...recipe, creadoEn: recipe.creadoEn || Date.now() };
+    await dbPut(toSave);
+    setRecetas(prev=>{
+      const exists = prev.some(r=>r.id===toSave.id);
+      const next = exists ? prev.map(r=>r.id===toSave.id?toSave:r) : [toSave, ...prev];
+      return next.sort((a,b)=>(b.creadoEn||0)-(a.creadoEn||0));
+    });
+    showToast(recipe._isNew ? "Receta guardada" : "Cambios guardados");
+    setView({screen:"detail", id: toSave.id});
+  };
+
+  const deleteRecipe = async (id)=>{
+    await dbDelete(id);
+    setRecetas(prev=>prev.filter(r=>r.id!==id));
+    showToast("Receta eliminada");
+    setView({screen:"list"});
+  };
+
+  const filtered = recetas.filter(r=>{
+    if(filtro!=="todas" && r.categoria!==filtro) return false;
+    if(search.trim()){
+      const s = search.toLowerCase();
+      const inTitle = r.titulo.toLowerCase().includes(s);
+      const inIng = (r.ingredientes||[]).some(i=>i.nombre.toLowerCase().includes(s));
+      if(!inTitle && !inIng) return false;
+    }
+    return true;
+  });
+
+  if(!loaded){
+    return <div style={{display:'flex',height:'100vh',alignItems:'center',justifyContent:'center',color:'#9b9182'}}>Cargando recetario…</div>;
+  }
+
+  return (
+    <React.Fragment>
+      <div className="topbar">
+        <div className="brand">
+          <div className="stamp">R</div>
+          <h1 className="serif">Mi Recetario</h1>
+        </div>
+      </div>
+
+      <main>
+        <div className="search-wrap">
+          <span className="search-icon">⌕</span>
+          <input
+            placeholder="Buscar receta o ingrediente…"
+            value={search}
+            onChange={e=>setSearch(e.target.value)}
+          />
+        </div>
+
+        <div className="filters">
+          <button className={"chip"+(filtro==="todas"?" active":"")} onClick={()=>setFiltro("todas")}>Todas</button>
+          {CATEGORIAS.map(c=>(
+            <button key={c.id} className={"chip"+(filtro===c.id?" active":"")} onClick={()=>setFiltro(c.id)}>
+              {c.icon} {c.label}
+            </button>
+          ))}
+        </div>
+
+        {filtered.length===0 ? (
+          <div className="empty">
+            <div className="stamp serif">R</div>
+            <h3>{recetas.length===0 ? "Tu recetario está vacío" : "No hay coincidencias"}</h3>
+            <p>{recetas.length===0 ? "Toca el botón + para añadir tu primera receta." : "Prueba con otra búsqueda o categoría."}</p>
+          </div>
+        ) : (
+          <div className="card-list">
+            {filtered.map(r=>{
+              const servingsBase = r.porciones || 1;
+              const totalKcal = calcTotalKcalBase(r.ingredientes||[]);
+              const kcalPerServing = servingsBase ? Math.round(totalKcal/servingsBase) : 0;
+              return (
+                <div key={r.id} className="recipe-card" onClick={()=>setView({screen:"detail", id:r.id})}>
+                  {r.destacada && <span className="tab">Favorita</span>}
+                  <div className="stamp-sm">{catIcon(r.categoria)}</div>
+                  <div className="info">
+                    <h3>{r.titulo}</h3>
+                    <div className="meta-row">
+                      <span>⏱ {r.tiempo || '—'} min</span>
+                      <span>◷ {servingsBase} porc.</span>
+                      <span>{catLabel(r.categoria)}</span>
+                    </div>
+                  </div>
+                  {kcalPerServing>0 && <div className="kcal-badge">{kcalPerServing} kcal</div>}
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </main>
+
+      <button className="fab" onClick={()=>setView({screen:"form", id:null})} aria-label="Añadir receta">+</button>
+
+      {view.screen==="detail" && (
+        <DetailScreen
+          recipe={recetas.find(r=>r.id===view.id)}
+          onClose={()=>setView({screen:"list"})}
+          onEdit={(id)=>setView({screen:"form", id})}
+          onDelete={deleteRecipe}
+        />
+      )}
+
+      {view.screen==="form" && (
+        <FormScreen
+          recipe={view.id ? recetas.find(r=>r.id===view.id) : null}
+          onClose={()=> view.id ? setView({screen:"detail", id:view.id}) : setView({screen:"list"})}
+          onSave={saveRecipe}
+        />
+      )}
+
+      <div className={"toast"+(toast?" show":"")}>{toast}</div>
+    </React.Fragment>
+  );
+}
+
+// ---------- Detail screen ----------
+function DetailScreen({ recipe, onClose, onEdit, onDelete }){
+  const baseServings = recipe ? (recipe.porciones||1) : 1;
+  const [servings, setServings] = useState(baseServings);
+
+  useEffect(()=>{ setServings(baseServings); }, [recipe && recipe.id]);
+
+  if(!recipe) return null;
+
+  const ingredientes = recipe.ingredientes || [];
+  const totalKcalBase = calcTotalKcalBase(ingredientes);
+  const totalKcalNow = totalKcalBase * (servings/baseServings);
+  const kcalPerServing = Math.round(totalKcalNow/servings) || 0;
+
+  const confirmDelete = ()=>{
+    if(window.confirm(`¿Eliminar "${recipe.titulo}"? Esta acción no se puede deshacer.`)){
+      onDelete(recipe.id);
+    }
+  };
+
+  return (
+    <div className="screen">
+      <div className="screen-top">
+        <button className="link-btn" onClick={onClose}>‹ Recetario</button>
+        <button className="link-btn" onClick={()=>onEdit(recipe.id)}>Editar</button>
+      </div>
+      <div className="screen-body">
+        <span className="hero-tag">{catIcon(recipe.categoria)} {catLabel(recipe.categoria)}</span>
+        <h2 className="hero-title serif">{recipe.titulo}</h2>
+        {recipe.descripcion && <p style={{color:'#6b6357', fontSize:15, lineHeight:1.5}}>{recipe.descripcion}</p>}
+
+        <div className="stat-row">
+          <div className="stat-box">
+            <div className="num">{recipe.tiempo || '—'}</div>
+            <div className="lbl">Minutos</div>
+          </div>
+          <div className="stat-box">
+            <div className="num kcal">{kcalPerServing || '—'}</div>
+            <div className="lbl">Kcal / porción</div>
+          </div>
+          <div className="stat-box">
+            <div className="num">{Math.round(totalKcalNow) || '—'}</div>
+            <div className="lbl">Kcal totales</div>
+          </div>
+        </div>
+
+        <div className="portion-control">
+          <button onClick={()=>setServings(s=>Math.max(1, s-1))}>−</button>
+          <div className="portion-num">{servings}<small>porciones</small></div>
+          <button onClick={()=>setServings(s=>s+1)}>+</button>
+        </div>
+
+        <div className="section-label">Ingredientes</div>
+        {ingredientes.length===0 ? (
+          <p style={{color:'#9b9182', fontSize:14}}>Sin ingredientes añadidos.</p>
+        ) : ingredientes.map((ing,i)=>{
+          const scaledQty = scaleQty(ing.cantidad, baseServings, servings);
+          const scaledKcal = ing.kcalTotal ? round1(parseFloat(ing.kcalTotal) * (servings/baseServings)) : null;
+          return (
+            <div className="ingredient-row" key={i}>
+              <span className="name">{ing.nombre}</span>
+              <span className="qty">
+                {fmtQty(scaledQty)} {ing.unidad}
+                {scaledKcal!==null && <span className="qty-kcal">{Math.round(scaledKcal)} kcal</span>}
+              </span>
+            </div>
+          );
+        })}
+
+        {(recipe.pasos||[]).length>0 && (
+          <React.Fragment>
+            <div className="section-label">Preparación</div>
+            {recipe.pasos.map((p,i)=>(
+              <div className="step-row" key={i}>
+                <div className="step-num serif">{i+1}</div>
+                <div className="step-text">{p}</div>
+              </div>
+            ))}
+          </React.Fragment>
+        )}
+
+        {recipe.notas && (
+          <React.Fragment>
+            <div className="section-label">Notas</div>
+            <div className="notes-box">{recipe.notas}</div>
+          </React.Fragment>
+        )}
+
+        <div style={{marginTop:36, textAlign:'center'}}>
+          <button className="link-btn danger" onClick={confirmDelete}>Eliminar receta</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ---------- Form screen (create/edit) ----------
+function emptyIngredient(){
+  return { id: uid(), nombre:"", cantidad:"", unidad:"g", kcalTotal:"", kcalMode:"manual", kcal100:"" };
+}
+
+function FormScreen({ recipe, onClose, onSave }){
+  const isEdit = !!recipe;
+  const [titulo, setTitulo] = useState(recipe? recipe.titulo : "");
+  const [descripcion, setDescripcion] = useState(recipe? (recipe.descripcion||"") : "");
+  const [categoria, setCategoria] = useState(recipe? recipe.categoria : "comida");
+  const [tiempo, setTiempo] = useState(recipe? (recipe.tiempo||"") : "");
+  const [porciones, setPorciones] = useState(recipe? (recipe.porciones||2) : 2);
+  const [ingredientes, setIngredientes] = useState(
+    recipe && recipe.ingredientes && recipe.ingredientes.length
+      ? recipe.ingredientes.map(i=>({
+          ...i,
+          id: i.id||uid(),
+          lookupStatus: (i.kcalMode==="auto" && i.kcal100) ? "found" : ""
+        }))
+      : [emptyIngredient()]
+  );
+  const [pasos, setPasos] = useState(recipe && recipe.pasos && recipe.pasos.length ? [...recipe.pasos] : [""]);
+  const [notas, setNotas] = useState(recipe? (recipe.notas||"") : "");
+  const [destacada, setDestacada] = useState(recipe? !!recipe.destacada : false);
+
+  const canSave = titulo.trim().length>0;
+
+  const updateIngredient = (id, patch)=>{
+    setIngredientes(prev=>prev.map(ing=> ing.id===id ? {...ing, ...patch} : ing));
+  };
+  const removeIngredient = (id)=>{
+    setIngredientes(prev=> prev.length>1 ? prev.filter(ing=>ing.id!==id) : prev);
+  };
+  const addIngredient = ()=> setIngredientes(prev=>[...prev, emptyIngredient()]);
+
+  const updatePaso = (i, val)=> setPasos(prev=> prev.map((p,idx)=> idx===i? val : p));
+  const removePaso = (i)=> setPasos(prev=> prev.length>1 ? prev.filter((_,idx)=>idx!==i) : prev);
+  const addPaso = ()=> setPasos(prev=>[...prev, ""]);
+
+  // automatic kcal lookup, debounced per ingredient
+  const debounceRefs = useRef({});
+  const triggerLookup = (ing)=>{
+    if(ing.kcalMode!=="auto") return;
+    clearTimeout(debounceRefs.current[ing.id]);
+    debounceRefs.current[ing.id] = setTimeout(async ()=>{
+      if(!ing.nombre || ing.nombre.trim().length<2){
+        updateIngredient(ing.id, { lookupStatus:"" });
+        return;
+      }
+      updateIngredient(ing.id, { lookupStatus:"searching" });
+      const result = await lookupKcalPer100g(ing.nombre);
+      if(!result){
+        updateIngredient(ing.id, { lookupStatus:"none", kcal100:"" , kcalTotal:""});
+        return;
+      }
+      const qty = parseFloat(ing.cantidad) || 0;
+      const unidad = ing.unidad;
+      // approximate: treat g/ml as base-100 unit; other units fall back to manual
+      let kcalTotal = "";
+      if((unidad==="g" || unidad==="ml") && qty>0){
+        kcalTotal = round1((result.kcal100/100) * qty);
+      }
+      updateIngredient(ing.id, { lookupStatus:"found", kcal100: result.kcal100, kcalTotal: kcalTotal.toString() });
+    }, 250);
+  };
+
+  const recalcAutoKcal = (ing, newQty, newUnidad)=>{
+    if(ing.kcalMode==="auto" && ing.kcal100 && (newUnidad==="g"||newUnidad==="ml")){
+      const qty = parseFloat(newQty)||0;
+      return round1((parseFloat(ing.kcal100)/100)*qty).toString();
+    }
+    return ing.kcalTotal;
+  };
+
+  const handleSave = ()=>{
+    if(!canSave) return;
+    const cleanIngredientes = ingredientes
+      .filter(i=>i.nombre.trim())
+      .map(({lookupStatus, ...rest})=>rest);
+    const cleanPasos = pasos.filter(p=>p.trim());
+    onSave({
+      id: recipe ? recipe.id : uid(),
+      titulo: titulo.trim(),
+      descripcion: descripcion.trim(),
+      categoria,
+      tiempo: tiempo? parseInt(tiempo) : null,
+      porciones: parseInt(porciones)||1,
+      ingredientes: cleanIngredientes,
+      pasos: cleanPasos,
+      notas: notas.trim(),
+      destacada,
+      creadoEn: recipe ? recipe.creadoEn : Date.now(),
+      _isNew: !recipe,
+    });
+  };
+
+  return (
+    <div className="screen">
+      <div className="screen-top">
+        <button className="link-btn" onClick={onClose}>Cancelar</button>
+        <div className="title">{isEdit ? "Editar receta" : "Nueva receta"}</div>
+        <div style={{width:60}}></div>
+      </div>
+      <div className="screen-body">
+
+        <div className="field">
+          <label>Nombre de la receta</label>
+          <input placeholder="Ej. Lentejas con chorizo" value={titulo} onChange={e=>setTitulo(e.target.value)} />
+        </div>
+
+        <div className="field">
+          <label>Descripción breve (opcional)</label>
+          <textarea rows={2} placeholder="Un plato de cuchara reconfortante, ideal para días fríos…" value={descripcion} onChange={e=>setDescripcion(e.target.value)} />
+        </div>
+
+        <div className="field-row">
+          <div className="field">
+            <label>Categoría</label>
+            <select value={categoria} onChange={e=>setCategoria(e.target.value)}>
+              {CATEGORIAS.map(c=> <option key={c.id} value={c.id}>{c.icon} {c.label}</option>)}
+            </select>
+          </div>
+          <div className="field">
+            <label>Tiempo (min)</label>
+            <input type="number" min="0" placeholder="30" value={tiempo} onChange={e=>setTiempo(e.target.value)} />
+          </div>
+        </div>
+
+        <div className="field">
+          <label>Porciones base</label>
+          <input type="number" min="1" value={porciones} onChange={e=>setPorciones(e.target.value)} />
+        </div>
+
+        <div className="section-label">Ingredientes</div>
+        {ingredientes.map((ing)=>(
+          <div className="ing-form-row" key={ing.id}>
+            <div className="top-line">
+              <input
+                placeholder="Ingrediente (ej. arroz)"
+                value={ing.nombre}
+                onChange={e=>{
+                  updateIngredient(ing.id, {nombre:e.target.value});
+                  triggerLookup({...ing, nombre:e.target.value});
+                }}
+              />
+              <input
+                placeholder="Cant."
+                type="number" min="0" step="any"
+                value={ing.cantidad}
+                onChange={e=>{
+                  const newQty = e.target.value;
+                  const newKcal = recalcAutoKcal(ing, newQty, ing.unidad);
+                  updateIngredient(ing.id, {cantidad:newQty, kcalTotal:newKcal});
+                }}
+              />
+              <select value={ing.unidad} onChange={e=>{
+                const newUnidad = e.target.value;
+                const newKcal = recalcAutoKcal(ing, ing.cantidad, newUnidad);
+                updateIngredient(ing.id, {unidad:newUnidad, kcalTotal:newKcal});
+              }}>
+                {UNIDADES.map(u=> <option key={u} value={u}>{u}</option>)}
+              </select>
+            </div>
+            <div className="bottom-line">
+              <select
+                style={{flex:'0 0 110px'}}
+                value={ing.kcalMode}
+                onChange={e=>{
+                  const mode = e.target.value;
+                  updateIngredient(ing.id, {kcalMode:mode});
+                  if(mode==="auto") triggerLookup({...ing, kcalMode:mode});
+                }}
+              >
+                <option value="manual">Kcal manual</option>
+                <option value="auto">Tabla local</option>
+              </select>
+              {ing.kcalMode==="manual" ? (
+                <input
+                  placeholder="Kcal totales"
+                  type="number" min="0" step="any"
+                  value={ing.kcalTotal}
+                  onChange={e=>updateIngredient(ing.id, {kcalTotal:e.target.value})}
+                />
+              ) : (
+                <div style={{flex:1, fontSize:12.5, color:'#8a8071', display:'flex', alignItems:'center', minWidth:0, lineHeight:1.3}}>
+                  {ing.lookupStatus==="searching" && <span className="kcal-lookup-status searching">Buscando…</span>}
+                  {ing.lookupStatus==="found" && <span className="kcal-lookup-status found">✓ {ing.kcal100} kcal/100{ing.unidad==='ml'?'ml':'g'} → {ing.kcalTotal} kcal</span>}
+                  {ing.lookupStatus==="none" && <span className="kcal-lookup-status none">No está en la tabla, usa manual</span>}
+                  {!ing.lookupStatus && <span className="kcal-lookup-status none">Escribe el nombre del alimento…</span>}
+                </div>
+              )}
+              <button className="remove-x" onClick={()=>removeIngredient(ing.id)} aria-label="Quitar ingrediente">×</button>
+            </div>
+          </div>
+        ))}
+        <button className="add-ing-btn" onClick={addIngredient}>+ Añadir ingrediente</button>
+
+        <div className="section-label">Preparación</div>
+        {pasos.map((p,i)=>(
+          <div className="step-form-row" key={i}>
+            <div className="step-num serif" style={{marginTop:10}}>{i+1}</div>
+            <textarea rows={2} placeholder={`Paso ${i+1}…`} value={p} onChange={e=>updatePaso(i, e.target.value)} />
+            <button className="remove-x" onClick={()=>removePaso(i)} aria-label="Quitar paso">×</button>
+          </div>
+        ))}
+        <button className="add-step-btn" onClick={addPaso}>+ Añadir paso</button>
+
+        <div className="field">
+          <label>Notas (opcional)</label>
+          <textarea rows={2} placeholder="Variantes, trucos, conservación…" value={notas} onChange={e=>setNotas(e.target.value)} />
+        </div>
+
+        <label style={{display:'flex', alignItems:'center', gap:10, fontSize:14, color:'#544e42', marginTop:8}}>
+          <input type="checkbox" checked={destacada} onChange={e=>setDestacada(e.target.checked)} style={{width:'auto'}}/>
+          Marcar como favorita
+        </label>
+      </div>
+
+      <div className="save-bar">
+        <button disabled={!canSave} onClick={handleSave}>{isEdit ? "Guardar cambios" : "Guardar receta"}</button>
+      </div>
+    </div>
+  );
+}
+
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(<App />);
+
+// ---------- Service worker registration (for installability) ----------
+if('serviceWorker' in navigator){
+  window.addEventListener('load', ()=>{
+    navigator.serviceWorker.register('./sw.js').catch(()=>{});
+  });
+}
+</script>
+</body>
+</html>
