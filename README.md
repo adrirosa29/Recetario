@@ -121,9 +121,14 @@ En la pestaña "Calendario" puedes planificar tus comidas en una vista mensual:
   recetario no se modifica, y puedes quitar el ajuste en cualquier momento
   para volver a sus valores normales.
 - Además de elegir una receta ya guardada, puedes añadir algo suelto que no
-  esté guardado como receta (un plátano, un yogur…) con solo su nombre y sus
-  kcal totales — se guarda automáticamente en tu recetario como una receta de
-  un solo ingrediente, así no tienes que volver a escribirlo otro día.
+  esté guardado como receta (un plátano, un yogur…). Al escribir el nombre,
+  busca en tu tabla personal y en la tabla local: si lo encuentra, te
+  precarga un **peso orientativo de una unidad mediana** (editable, por si
+  la tuya es más grande o pequeña) y calcula las kcal en vivo a partir del
+  peso. Si no lo encuentra, puedes escribir las kcal totales a mano como
+  antes. En cualquier caso, se guarda automáticamente en tu recetario como
+  una receta de un solo ingrediente, así no tienes que volver a escribirlo
+  otro día.
 - El calendario muestra las kcal totales planificadas para cada día con datos.
 - Los días que ya han pasado se muestran con un tono más apagado para
   diferenciarlos claramente de los días futuros.

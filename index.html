@@ -910,6 +910,7 @@ function App(){
         <CalendarScreen
           recetas={recetas}
           plan={plan}
+          alimentosPersonales={alimentosPersonales}
           onAddToSlot={addToPlanSlot}
           onRemoveFromSlot={removeFromPlanSlot}
           onUpdateRaciones={updatePlanSlotRaciones}
@@ -1059,7 +1060,7 @@ function DetailScreen({ recipe, onClose, onEdit, onDelete }){
 }
 
 // ---------- Calendario de planificación ----------
-function CalendarScreen({ recetas, plan, onAddToSlot, onRemoveFromSlot, onUpdateRaciones, onUpdateIngredientes, onCreateQuickExtra }){
+function CalendarScreen({ recetas, plan, alimentosPersonales, onAddToSlot, onRemoveFromSlot, onUpdateRaciones, onUpdateIngredientes, onCreateQuickExtra }){
   const today = new Date();
   const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
   const [cursor, setCursor] = useState(new Date(today.getFullYear(), today.getMonth(), 1));
@@ -1194,6 +1195,7 @@ function CalendarScreen({ recetas, plan, onAddToSlot, onRemoveFromSlot, onUpdate
           plan={plan[fechaToKey(selectedDay)]}
           recetaById={recetaById}
           recetas={recetas}
+          alimentosPersonales={alimentosPersonales}
           franjaList={franjaList}
           kcalDeItem={kcalDeItem}
           onClose={()=>setSelectedDay(null)}
@@ -1208,7 +1210,7 @@ function CalendarScreen({ recetas, plan, onAddToSlot, onRemoveFromSlot, onUpdate
   );
 }
 
-function DayPanel({ date, plan, recetaById, recetas, franjaList, kcalDeItem, onClose, onAdd, onRemove, onUpdateRaciones, onUpdateIngredientes, onCreateQuickExtra }){
+function DayPanel({ date, plan, recetaById, recetas, alimentosPersonales, franjaList, kcalDeItem, onClose, onAdd, onRemove, onUpdateRaciones, onUpdateIngredientes, onCreateQuickExtra }){
   const [pickerFor, setPickerFor] = useState(null); // franjaId | null
   const [editingItem, setEditingItem] = useState(null); // { franjaId, index, item, receta } | null
 
@@ -1285,6 +1287,7 @@ function DayPanel({ date, plan, recetaById, recetas, franjaList, kcalDeItem, onC
       {pickerFor && (
         <RecipePicker
           recetas={recetas}
+          alimentosPersonales={alimentosPersonales}
           franjaLabel={FRANJAS.find(f=>f.id===pickerFor).label}
           onSelect={(recetaId)=>{ onAdd(pickerFor, recetaId); setPickerFor(null); }}
           onCreateQuickExtra={async (nombre, kcal)=>{
@@ -1311,16 +1314,41 @@ function DayPanel({ date, plan, recetaById, recetas, franjaList, kcalDeItem, onC
   );
 }
 
-function RecipePicker({ recetas, franjaLabel, onSelect, onCreateQuickExtra, onClose }){
+function RecipePicker({ recetas, alimentosPersonales, franjaLabel, onSelect, onCreateQuickExtra, onClose }){
   const [search, setSearch] = useState("");
   const [showExtraForm, setShowExtraForm] = useState(false);
   const [extraNombre, setExtraNombre] = useState("");
-  const [extraKcal, setExtraKcal] = useState("");
+  const [extraSuggestions, setExtraSuggestions] = useState([]);
+  const [extraSuggestOpen, setExtraSuggestOpen] = useState(false);
+  // matched: alimento encontrado en la tabla {kcal100, pesoUnidad} | null si modo 100% manual
+  const [matched, setMatched] = useState(null);
+  const [extraPeso, setExtraPeso] = useState(""); // gramos, usado cuando matched existe
+  const [extraKcalManual, setExtraKcalManual] = useState(""); // kcal totales, usado cuando NO hay match
+
   const filtered = recetas.filter(r=> r.titulo.toLowerCase().includes(search.toLowerCase()));
 
+  const handleNombreChange = (val)=>{
+    setExtraNombre(val);
+    setMatched(null);
+    const matches = suggestFoods(val, alimentosPersonales, 5);
+    setExtraSuggestions(matches);
+    setExtraSuggestOpen(matches.length>0);
+  };
+
+  const handleSelectSuggestion = (s)=>{
+    setExtraNombre(s.nombre);
+    setMatched(s);
+    setExtraPeso(s.pesoUnidad ? s.pesoUnidad.toString() : "100");
+    setExtraSuggestOpen(false);
+  };
+
+  const kcalCalculadas = matched ? Math.round((matched.kcal100/100) * (parseFloat(extraPeso)||0)) : null;
+  const kcalFinal = matched ? kcalCalculadas : parseFloat(extraKcalManual);
+  const canCreateExtra = extraNombre.trim() && !isNaN(kcalFinal) && kcalFinal>0;
+
   const handleCreateExtra = ()=>{
-    if(!extraNombre.trim() || isNaN(parseFloat(extraKcal))) return;
-    onCreateQuickExtra(extraNombre.trim(), parseFloat(extraKcal));
+    if(!canCreateExtra) return;
+    onCreateQuickExtra(extraNombre.trim(), kcalFinal);
   };
 
   return (
@@ -1351,20 +1379,67 @@ function RecipePicker({ recetas, franjaLabel, onSelect, onCreateQuickExtra, onCl
           </React.Fragment>
         ) : (
           <div className="quick-extra-form">
-            <div className="field">
+            <div className="field" style={{position:'relative'}}>
               <label>Nombre</label>
-              <input placeholder="Ej. Plátano, yogur natural…" value={extraNombre} onChange={e=>setExtraNombre(e.target.value)} autoFocus />
+              <input
+                placeholder="Ej. Plátano, yogur natural…"
+                value={extraNombre}
+                autoComplete="off"
+                onChange={e=>handleNombreChange(e.target.value)}
+                onFocus={()=>{ if(extraSuggestions.length>0) setExtraSuggestOpen(true); }}
+                onBlur={()=> setTimeout(()=>setExtraSuggestOpen(false), 150)}
+                autoFocus
+              />
+              {extraSuggestOpen && (
+                <div className="suggest-dropdown">
+                  {extraSuggestions.map((s,idx)=>(
+                    <div key={idx} className="suggest-item" onMouseDown={()=>handleSelectSuggestion(s)}>
+                      <span className="suggest-name">{s.nombre}</span>
+                      <span className="suggest-kcal">{s.kcal100} kcal/100{s.origen==="personal" ? " · tu tabla" : ""}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
-            <div className="field">
-              <label>Kcal totales</label>
-              <input placeholder="Ej. 95" type="number" min="0" step="any" value={extraKcal} onChange={e=>setExtraKcal(e.target.value)} />
-            </div>
+
+            {matched ? (
+              <React.Fragment>
+                <div className="field">
+                  <label>Peso (g)</label>
+                  <input
+                    type="number" min="0" step="any"
+                    value={extraPeso}
+                    onChange={e=>setExtraPeso(e.target.value)}
+                  />
+                  {matched.pesoUnidad && (
+                    <p className="quick-extra-hint" style={{marginTop:6}}>
+                      Peso orientativo de una unidad mediana ({matched.pesoUnidad}g) — ajústalo si la tuya es más grande o pequeña.
+                    </p>
+                  )}
+                </div>
+                <div className="edit-total-row" style={{marginTop:0}}>
+                  <span>Total estimado</span>
+                  <span className="edit-total-kcal">{kcalCalculadas || 0} kcal</span>
+                </div>
+              </React.Fragment>
+            ) : (
+              <div className="field">
+                <label>Kcal totales</label>
+                <input placeholder="Ej. 95" type="number" min="0" step="any" value={extraKcalManual} onChange={e=>setExtraKcalManual(e.target.value)} />
+                {extraNombre.trim().length>=2 && (
+                  <p className="quick-extra-hint" style={{marginTop:6}}>
+                    No está en la tabla — escribe las kcal totales a mano.
+                  </p>
+                )}
+              </div>
+            )}
+
             <p className="quick-extra-hint">Se guardará en tu recetario para poder reutilizarlo otro día.</p>
             <div style={{display:'flex', gap:10}}>
               <button className="link-btn" onClick={()=>setShowExtraForm(false)} style={{flex:1}}>Cancelar</button>
               <button
                 className="quick-extra-confirm"
-                disabled={!extraNombre.trim() || isNaN(parseFloat(extraKcal))}
+                disabled={!canCreateExtra}
                 onClick={handleCreateExtra}
               >
                 Añadir

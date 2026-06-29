@@ -46,19 +46,19 @@ const FOOD_DB = [
   { nombre:"Pulpo", kcal100:82, alias:["pulpo"] },
 
   // --- Huevos y lácteos ---
-  { nombre:"Huevo entero", kcal100:155, alias:["huevo","huevos","huevo entero"] },
-  { nombre:"Clara de huevo", kcal100:52, alias:["clara de huevo","claras"] },
-  { nombre:"Yema de huevo", kcal100:322, alias:["yema de huevo","yema"] },
+  { nombre:"Huevo entero", kcal100:155, pesoUnidad:55, alias:["huevo","huevos","huevo entero"] },
+  { nombre:"Clara de huevo", kcal100:52, pesoUnidad:33, alias:["clara de huevo","claras"] },
+  { nombre:"Yema de huevo", kcal100:322, pesoUnidad:18, alias:["yema de huevo","yema"] },
   { nombre:"Leche entera", kcal100:64, alias:["leche","leche entera"] },
   { nombre:"Leche desnatada", kcal100:35, alias:["leche desnatada","leche descremada"] },
   { nombre:"Leche semidesnatada", kcal100:46, alias:["leche semidesnatada","leche semi"] },
   { nombre:"Leche de almendras", kcal100:24, alias:["leche de almendras"] },
   { nombre:"Leche de avena", kcal100:48, alias:["leche de avena"] },
   { nombre:"Leche de soja", kcal100:33, alias:["leche de soja","leche de soya"] },
-  { nombre:"Yogur natural", kcal100:61, alias:["yogur","yogur natural"] },
-  { nombre:"Yogur griego", kcal100:97, alias:["yogur griego"] },
-  { nombre:"Yogur desnatado", kcal100:42, alias:["yogur desnatado","yogur 0%","yogur light"] },
-  { nombre:"Yogur de sabores/frutas", kcal100:95, alias:["yogur de frutas","yogur de fresa","yogur de sabores"] },
+  { nombre:"Yogur natural", kcal100:61, pesoUnidad:125, alias:["yogur","yogur natural"] },
+  { nombre:"Yogur griego", kcal100:97, pesoUnidad:125, alias:["yogur griego"] },
+  { nombre:"Yogur desnatado", kcal100:42, pesoUnidad:125, alias:["yogur desnatado","yogur 0%","yogur light"] },
+  { nombre:"Yogur de sabores/frutas", kcal100:95, pesoUnidad:125, alias:["yogur de frutas","yogur de fresa","yogur de sabores"] },
   { nombre:"Queso fresco", kcal100:98, alias:["queso fresco"] },
   { nombre:"Queso curado", kcal100:392, alias:["queso curado","queso manchego"] },
   { nombre:"Queso mozzarella", kcal100:280, alias:["mozzarella","queso mozzarella"] },
@@ -99,41 +99,41 @@ const FOOD_DB = [
   { nombre:"Calabaza", kcal100:26, alias:["calabaza"] },
   { nombre:"Remolacha", kcal100:43, alias:["remolacha"] },
 
-  // --- Frutas ---
-  { nombre:"Manzana", kcal100:52, alias:["manzana","manzanas"] },
-  { nombre:"Plátano / banana", kcal100:89, alias:["plátano","platano","banana","plátanos"] },
-  { nombre:"Naranja", kcal100:47, alias:["naranja","naranjas"] },
-  { nombre:"Limón", kcal100:29, alias:["limón","limon"] },
-  { nombre:"Lima", kcal100:30, alias:["lima","limas"] },
-  { nombre:"Pera", kcal100:57, alias:["pera","peras"] },
+  // --- Frutas (pesoUnidad = gramos orientativos de una pieza mediana, parte comestible) ---
+  { nombre:"Manzana", kcal100:52, pesoUnidad:150, alias:["manzana","manzanas"] },
+  { nombre:"Plátano / banana", kcal100:89, pesoUnidad:120, alias:["plátano","platano","banana","plátanos"] },
+  { nombre:"Naranja", kcal100:47, pesoUnidad:130, alias:["naranja","naranjas"] },
+  { nombre:"Limón", kcal100:29, pesoUnidad:60, alias:["limón","limon"] },
+  { nombre:"Lima", kcal100:30, pesoUnidad:45, alias:["lima","limas"] },
+  { nombre:"Pera", kcal100:57, pesoUnidad:160, alias:["pera","peras"] },
   { nombre:"Fresas", kcal100:32, alias:["fresa","fresas","fresón","fresones","frutilla","frutillas"] },
   { nombre:"Uvas", kcal100:69, alias:["uva","uvas"] },
   { nombre:"Sandía", kcal100:30, alias:["sandía","sandia"] },
   { nombre:"Melón", kcal100:34, alias:["melón","melon"] },
   { nombre:"Piña", kcal100:50, alias:["piña","ananá","ananas"] },
-  { nombre:"Mango", kcal100:60, alias:["mango"] },
-  { nombre:"Aguacate", kcal100:160, alias:["aguacate","palta"] },
-  { nombre:"Kiwi", kcal100:61, alias:["kiwi"] },
-  { nombre:"Melocotón", kcal100:39, alias:["melocotón","melocoton","durazno"] },
-  { nombre:"Mandarina", kcal100:43, alias:["mandarina","mandarinas","clementina"] },
-  { nombre:"Pomelo", kcal100:42, alias:["pomelo","toronja"] },
+  { nombre:"Mango", kcal100:60, pesoUnidad:150, alias:["mango"] },
+  { nombre:"Aguacate", kcal100:160, pesoUnidad:140, alias:["aguacate","palta"] },
+  { nombre:"Kiwi", kcal100:61, pesoUnidad:70, alias:["kiwi"] },
+  { nombre:"Melocotón", kcal100:39, pesoUnidad:140, alias:["melocotón","melocoton","durazno"] },
+  { nombre:"Mandarina", kcal100:43, pesoUnidad:80, alias:["mandarina","mandarinas","clementina"] },
+  { nombre:"Pomelo", kcal100:42, pesoUnidad:200, alias:["pomelo","toronja"] },
   { nombre:"Cerezas", kcal100:63, alias:["cereza","cerezas"] },
-  { nombre:"Ciruela", kcal100:46, alias:["ciruela","ciruelas"] },
-  { nombre:"Albaricoque", kcal100:48, alias:["albaricoque","albaricoques","damasco"] },
-  { nombre:"Higo", kcal100:74, alias:["higo","higos"] },
-  { nombre:"Granada", kcal100:68, alias:["granada"] },
+  { nombre:"Ciruela", kcal100:46, pesoUnidad:65, alias:["ciruela","ciruelas"] },
+  { nombre:"Albaricoque", kcal100:48, pesoUnidad:40, alias:["albaricoque","albaricoques","damasco"] },
+  { nombre:"Higo", kcal100:74, pesoUnidad:50, alias:["higo","higos"] },
+  { nombre:"Granada", kcal100:68, pesoUnidad:200, alias:["granada"] },
   { nombre:"Papaya", kcal100:43, alias:["papaya"] },
   { nombre:"Coco (pulpa)", kcal100:354, alias:["coco"] },
   { nombre:"Arándanos", kcal100:57, alias:["arándanos","arandanos","blueberry"] },
   { nombre:"Frambuesas", kcal100:52, alias:["frambuesa","frambuesas"] },
   { nombre:"Moras", kcal100:43, alias:["mora","moras"] },
-  { nombre:"Caqui", kcal100:70, alias:["caqui","kaki"] },
-  { nombre:"Níspero", kcal100:47, alias:["níspero","nispero"] },
-  { nombre:"Chirimoya", kcal100:75, alias:["chirimoya"] },
-  { nombre:"Maracuyá", kcal100:97, alias:["maracuyá","maracuya","fruta de la pasión"] },
+  { nombre:"Caqui", kcal100:70, pesoUnidad:170, alias:["caqui","kaki"] },
+  { nombre:"Níspero", kcal100:47, pesoUnidad:25, alias:["níspero","nispero"] },
+  { nombre:"Chirimoya", kcal100:75, pesoUnidad:300, alias:["chirimoya"] },
+  { nombre:"Maracuyá", kcal100:97, pesoUnidad:50, alias:["maracuyá","maracuya","fruta de la pasión"] },
   { nombre:"Uva pasa", kcal100:299, alias:["uva pasa","pasas","uvas pasas"] },
-  { nombre:"Dátil", kcal100:282, alias:["dátil","datil","dátiles"] },
-  { nombre:"Nectarina", kcal100:44, alias:["nectarina","nectarinas"] },
+  { nombre:"Dátil", kcal100:282, pesoUnidad:8, alias:["dátil","datil","dátiles"] },
+  { nombre:"Nectarina", kcal100:44, pesoUnidad:140, alias:["nectarina","nectarinas"] },
 
   // --- Frutos secos y semillas ---
   { nombre:"Almendras", kcal100:579, alias:["almendras","almendra"] },
@@ -244,7 +244,7 @@ function searchLocalFoodDB(query){
   // 1. coincidencia exacta de alias
   for(const food of FOOD_DB){
     for(const alias of food.alias){
-      if(normalize(alias) === q) return { nombre: food.nombre, kcal100: food.kcal100 };
+      if(normalize(alias) === q) return { nombre: food.nombre, kcal100: food.kcal100, pesoUnidad: food.pesoUnidad || null };
     }
   }
   // 2. el alias contiene la query completa, o la query contiene el alias (substring)
@@ -257,7 +257,7 @@ function searchLocalFoodDB(query){
         const score = Math.min(a.length, q.length) / Math.max(a.length, q.length);
         if(score > bestScore){
           bestScore = score;
-          best = { nombre: food.nombre, kcal100: food.kcal100 };
+          best = { nombre: food.nombre, kcal100: food.kcal100, pesoUnidad: food.pesoUnidad || null };
         }
       }
     }
@@ -293,7 +293,7 @@ function suggestFoods(query, alimentosPersonales, limit){
         const key = normalize(food.nombre);
         if(!seen.has(key)){
           seen.add(key);
-          results.push({ nombre: food.nombre, kcal100: food.kcal100, origen: "tabla" });
+          results.push({ nombre: food.nombre, kcal100: food.kcal100, origen: "tabla", pesoUnidad: food.pesoUnidad || null });
         }
         break;
       }
