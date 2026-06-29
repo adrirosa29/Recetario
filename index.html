@@ -276,12 +276,12 @@
 
   .stats-pager{
     display:flex; overflow-x:auto; scroll-snap-type:x mandatory;
-    scrollbar-width:none; margin:0 -20px; padding:0 20px;
+    scrollbar-width:none; width:100%; touch-action:pan-x; -webkit-overflow-scrolling:touch;
   }
   .stats-pager::-webkit-scrollbar{ display:none; }
   .stats-page{
-    flex:0 0 100%; scroll-snap-align:start; display:flex; align-items:center;
-    padding-right:20px; box-sizing:border-box;
+    flex:0 0 100%; flex-shrink:0; width:100%; scroll-snap-align:start; scroll-snap-stop:always;
+    display:flex; align-items:center; box-sizing:border-box; min-width:0;
   }
   .stats-medias-row{ display:flex; gap:10px; width:100%; }
   .stats-pager-dots{ display:flex; justify-content:center; gap:6px; margin:10px 0 8px; }
