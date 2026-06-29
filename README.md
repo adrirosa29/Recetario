@@ -82,12 +82,14 @@ archivos a mano):
 
 Al abrir la pestaña Recetario, primero ves una cuadrícula con las 6
 categorías (Desayuno, Comida, Cena, Postre, Snack, Bebida), cada una con su
-propio color y el número de recetas que tienes guardadas en ella. Tocando una
-categoría entras a la lista de esas recetas, con un botón "‹" para volver a
-las categorías. Si prefieres ver todas mezcladas, hay un botón "Ver todas las
-recetas" debajo de la cuadrícula — y si escribes directamente en el buscador
-desde la pantalla de categorías, te lleva igualmente a los resultados sin
-tener que elegir ninguna categoría primero.
+propio color, icono y el número de recetas que tienes guardadas en ella.
+Tocando una categoría entras a la lista de **solo esas recetas** — el único
+camino para cambiar de categoría es el botón "‹", que te lleva de vuelta a
+la cuadrícula principal. Si prefieres ver todas mezcladas, hay un botón "Ver
+todas las recetas" debajo de la cuadrícula (y desde ahí sí puedes saltar de
+una categoría a otra con los chips, como antes) — y si escribes directamente
+en el buscador desde la pantalla de categorías, te lleva igualmente a los
+resultados sin tener que elegir ninguna categoría primero.
 
 ## Sobre las calorías
 
