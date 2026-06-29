@@ -247,13 +247,40 @@
   .cal-day.obj-verde.past, .cal-day.obj-ambar.past, .cal-day.obj-rojo.past{ opacity:0.75; }
 
   /* ---- Estadísticas ---- */
-  .stats-row{ display:flex; gap:10px; margin-bottom:8px; }
   .stats-box{
     flex:1; background:var(--blanco-papel); border:1px solid var(--linea); border-radius:16px;
     padding:16px 10px; text-align:center;
   }
   .stats-num{ font-size:24px; font-weight:700; color:var(--terracota); line-height:1.1; }
   .stats-lbl{ font-size:10.5px; color:#8a8071; text-transform:uppercase; letter-spacing:0.3px; margin-top:6px; line-height:1.3; }
+
+  .stats-today-box{
+    background:var(--blanco-papel); border:1.5px solid var(--linea); border-radius:18px;
+    padding:22px 16px; text-align:center; margin-bottom:10px;
+  }
+  .stats-today-num{ font-size:36px; font-weight:700; color:var(--terracota); line-height:1.1; }
+  .stats-today-lbl{ font-size:12px; color:#8a8071; text-transform:uppercase; letter-spacing:0.4px; margin-top:6px; font-weight:700; }
+  .stats-today-msg{ font-size:12.5px; font-weight:600; margin-top:8px; }
+  .stats-today-box.obj-verde{ background:#E3EBD9; border-color:#C5D6AE; }
+  .stats-today-box.obj-verde .stats-today-num{ color:#3b5226; }
+  .stats-today-box.obj-verde .stats-today-lbl{ color:#4d6b30; }
+  .stats-today-box.obj-verde .stats-today-msg{ color:#3b5226; }
+  .stats-today-box.obj-ambar{ background:#FBEAD0; border-color:#F0CE96; }
+  .stats-today-box.obj-ambar .stats-today-num{ color:#8a5a17; }
+  .stats-today-box.obj-ambar .stats-today-lbl{ color:#9c6515; }
+  .stats-today-box.obj-ambar .stats-today-msg{ color:#8a5a17; }
+  .stats-today-box.obj-rojo{ background:#F6DAD3; border-color:#E8AD9C; }
+  .stats-today-box.obj-rojo .stats-today-num{ color:#8a3221; }
+  .stats-today-box.obj-rojo .stats-today-lbl{ color:#9c3a26; }
+  .stats-today-box.obj-rojo .stats-today-msg{ color:#8a3221; }
+
+  .stats-carousel-hint{ font-size:11px; color:#a39a8c; text-align:center; margin-bottom:8px; }
+  .stats-carousel{
+    display:flex; gap:10px; overflow-x:auto; scroll-snap-type:x mandatory;
+    padding-bottom:4px; margin-bottom:8px; scrollbar-width:none;
+  }
+  .stats-carousel::-webkit-scrollbar{ display:none; }
+  .stats-carousel .stats-box{ flex:0 0 calc(50% - 5px); scroll-snap-align:start; }
 
   .franja-stats-list{ display:flex; flex-direction:column; gap:10px; margin-bottom:8px; }
   .franja-stats-item{
@@ -1775,6 +1802,12 @@ function StatsScreen({ recetas, plan, objetivoKcal, onUpdateObjetivoKcal }){
   };
 
   const kcalHoy = Math.round(kcalDelDia(todayKey));
+  const colorObjetivoHoy = (()=>{
+    if(!objetivoKcal || elementosDelDia(todayKey)===0) return null;
+    if(kcalHoy <= objetivoKcal) return "verde";
+    if(kcalHoy <= objetivoKcal*1.05) return "ambar";
+    return "rojo";
+  })();
 
   const startOfWeek = new Date(today);
   startOfWeek.setDate(today.getDate() - ((today.getDay()+6)%7));
@@ -1857,11 +1890,20 @@ function StatsScreen({ recetas, plan, objetivoKcal, onUpdateObjetivoKcal }){
         )}
 
         <div className="section-label">Calorías planificadas</div>
-        <div className="stats-row">
-          <div className="stats-box">
-            <div className="stats-num">{kcalHoy || '—'}</div>
-            <div className="stats-lbl">Hoy</div>
-          </div>
+        <div className={"stats-today-box"+(colorObjetivoHoy?" obj-"+colorObjetivoHoy:"")}>
+          <div className="stats-today-num">{kcalHoy || '—'}</div>
+          <div className="stats-today-lbl">Hoy</div>
+          {colorObjetivoHoy && (
+            <div className="stats-today-msg">
+              {colorObjetivoHoy==="verde" && "Dentro del objetivo"}
+              {colorObjetivoHoy==="ambar" && "Hasta +5% del objetivo"}
+              {colorObjetivoHoy==="rojo" && "Por encima del objetivo"}
+            </div>
+          )}
+        </div>
+
+        <div className="stats-carousel-hint">Desliza para ver más medias ‹›</div>
+        <div className="stats-carousel">
           <div className="stats-box">
             <div className="stats-num">{promedioSemanal || '—'}</div>
             <div className="stats-lbl">Media / día<br/>esta semana</div>
