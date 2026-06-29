@@ -107,6 +107,12 @@ En la pestaña "Calendario" puedes planificar tus comidas en una vista mensual:
 - Toca un día para abrir el panel y asignar recetas a cada franja — puedes
   añadir **varias cosas a la misma franja** (por ejemplo, albóndigas en salsa
   y un yogur en la misma comida).
+- Para cada receta añadida a una franja, puedes indicar con los botones −/+
+  **cuántas raciones has comido** (por ejemplo, 2 empanadas si una ración de
+  la receta es 1 empanada). Las kcal se recalculan automáticamente como
+  (kcal totales de la receta ÷ porciones base) × raciones comidas — esto es
+  independiente de las porciones base de la receta, que sirven para ajustar
+  cantidades de ingredientes en su propio detalle.
 - Además de elegir una receta ya guardada, puedes añadir algo suelto que no
   esté guardado como receta (un plátano, un yogur…) con solo su nombre y sus
   kcal totales — se guarda automáticamente en tu recetario como una receta de
