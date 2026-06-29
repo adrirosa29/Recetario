@@ -258,6 +258,34 @@
   .franja-slot .slot-recipe-name{ font-size:14.5px; font-weight:600; flex:1; min-width:0; }
   .franja-slot .slot-kcal{ font-size:12px; color:#8a8071; flex-shrink:0; }
   .franja-slot .slot-remove{ background:none; border:none; color:#b8ad9a; font-size:18px; cursor:pointer; padding:0 2px; flex-shrink:0; }
+  .slot-top-actions{ display:flex; align-items:center; gap:6px; flex-shrink:0; }
+  .slot-edit{
+    background:none; border:none; color:#a39a8c; font-size:14px; cursor:pointer; padding:2px 4px; flex-shrink:0;
+  }
+  .slot-edit:active{ color:var(--oliva); }
+  .ajustado-badge{
+    display:inline-block; font-size:10px; font-weight:700; color:#8a6a2a; background:rgba(212,160,76,0.15);
+    padding:2px 7px; border-radius:100px; margin-left:7px; text-transform:uppercase; letter-spacing:0.2px;
+    vertical-align:middle;
+  }
+
+  .edit-plan-item{ padding-bottom:calc(env(safe-area-inset-bottom) + 24px); }
+  .edit-ing-row{
+    display:flex; align-items:center; gap:10px; padding:10px 0; border-bottom:1px solid var(--linea);
+  }
+  .edit-ing-row:last-child{ border-bottom:none; }
+  .edit-ing-name{ flex:1; font-size:14.5px; color:var(--carbon); min-width:0; }
+  .edit-ing-row input{
+    width:70px; padding:8px 10px; border-radius:10px; border:1px solid var(--linea);
+    background:var(--blanco-papel); font-size:14.5px; text-align:right;
+  }
+  .edit-ing-row input:focus{ outline:2px solid var(--oliva); outline-offset:1px; }
+  .edit-ing-unidad{ font-size:13px; color:#8a8071; width:24px; flex-shrink:0; }
+  .edit-total-row{
+    display:flex; justify-content:space-between; align-items:center; margin-top:16px;
+    padding-top:14px; border-top:1.5px solid var(--linea); font-size:14.5px; font-weight:600;
+  }
+  .edit-total-kcal{ color:var(--terracota); font-size:17px; font-weight:700; }
 
   .franja-slot.raciones-slot{ flex-direction:column; align-items:stretch; gap:8px; }
   .slot-top-line{ display:flex; align-items:center; justify-content:space-between; gap:8px; }
@@ -737,6 +765,24 @@ function App(){
     });
   },[]);
 
+  // Guarda un ajuste de ingredientes (cantidades distintas) SOLO para ese elemento de ese día,
+  // sin modificar la receta original. Pasar null en ingredientesOverride para quitar el ajuste.
+  const updatePlanItemIngredientes = useCallback(async (fechaKey, franjaId, index, ingredientesOverride)=>{
+    setPlan(prev=>{
+      const diaNuevo = normalizeDiaPlan(prev[fechaKey], fechaKey);
+      diaNuevo[franjaId] = diaNuevo[franjaId].map((item,i)=>{
+        if(i!==index) return item;
+        if(ingredientesOverride===null){
+          const { ingredientesOverride: _omit, ...rest } = item;
+          return rest;
+        }
+        return { ...item, ingredientesOverride };
+      });
+      dbPutPlanDia(diaNuevo);
+      return { ...prev, [fechaKey]: diaNuevo };
+    });
+  },[]);
+
   const saveRecipe = async (recipe)=>{
     const toSave = { ...recipe, creadoEn: recipe.creadoEn || Date.now() };
     await dbPut(toSave);
@@ -867,6 +913,7 @@ function App(){
           onAddToSlot={addToPlanSlot}
           onRemoveFromSlot={removeFromPlanSlot}
           onUpdateRaciones={updatePlanSlotRaciones}
+          onUpdateIngredientes={updatePlanItemIngredientes}
           onCreateQuickExtra={createQuickExtra}
         />
       )}
@@ -1012,7 +1059,7 @@ function DetailScreen({ recipe, onClose, onEdit, onDelete }){
 }
 
 // ---------- Calendario de planificación ----------
-function CalendarScreen({ recetas, plan, onAddToSlot, onRemoveFromSlot, onUpdateRaciones, onCreateQuickExtra }){
+function CalendarScreen({ recetas, plan, onAddToSlot, onRemoveFromSlot, onUpdateRaciones, onUpdateIngredientes, onCreateQuickExtra }){
   const today = new Date();
   const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
   const [cursor, setCursor] = useState(new Date(today.getFullYear(), today.getMonth(), 1));
@@ -1029,10 +1076,15 @@ function CalendarScreen({ recetas, plan, onAddToSlot, onRemoveFromSlot, onUpdate
     else if(val) lista = [val];
     return lista.map(item => (typeof item === 'string') ? { recetaId: item, raciones: 1 } : item);
   };
-  // kcal de un elemento concreto de una franja, multiplicando por las raciones consumidas
+  // kcal de un elemento concreto de una franja. Si tiene ingredientesOverride (ajuste manual
+  // de cantidades para ese día), se calculan las kcal directamente de esos ingredientes y no
+  // se multiplica por raciones (el ajuste ya representa la cantidad real consumida esa vez).
   const kcalDeItem = (item)=>{
     const receta = recetaById(item.recetaId);
     if(!receta) return 0;
+    if(item.ingredientesOverride){
+      return calcTotalKcalBase(item.ingredientesOverride);
+    }
     return kcalPorPorcion(receta) * (item.raciones || 1);
   };
 
@@ -1148,6 +1200,7 @@ function CalendarScreen({ recetas, plan, onAddToSlot, onRemoveFromSlot, onUpdate
           onAdd={(franjaId, recetaId)=> onAddToSlot(fechaToKey(selectedDay), franjaId, recetaId)}
           onRemove={(franjaId, index)=> onRemoveFromSlot(fechaToKey(selectedDay), franjaId, index)}
           onUpdateRaciones={(franjaId, index, raciones)=> onUpdateRaciones(fechaToKey(selectedDay), franjaId, index, raciones)}
+          onUpdateIngredientes={(franjaId, index, ingredientesOverride)=> onUpdateIngredientes(fechaToKey(selectedDay), franjaId, index, ingredientesOverride)}
           onCreateQuickExtra={onCreateQuickExtra}
         />
       )}
@@ -1155,8 +1208,9 @@ function CalendarScreen({ recetas, plan, onAddToSlot, onRemoveFromSlot, onUpdate
   );
 }
 
-function DayPanel({ date, plan, recetaById, recetas, franjaList, kcalDeItem, onClose, onAdd, onRemove, onUpdateRaciones, onCreateQuickExtra }){
+function DayPanel({ date, plan, recetaById, recetas, franjaList, kcalDeItem, onClose, onAdd, onRemove, onUpdateRaciones, onUpdateIngredientes, onCreateQuickExtra }){
   const [pickerFor, setPickerFor] = useState(null); // franjaId | null
+  const [editingItem, setEditingItem] = useState(null); // { franjaId, index, item, receta } | null
 
   const dia = plan || {};
   const total = FRANJAS.reduce((sum,f)=>{
@@ -1183,18 +1237,38 @@ function DayPanel({ date, plan, recetaById, recetas, franjaList, kcalDeItem, onC
                 if(!receta) return null;
                 const raciones = item.raciones || 1;
                 const kcalItem = Math.round(kcalDeItem(item));
+                const ajustado = !!item.ingredientesOverride;
+                const tieneIngredientes = (receta.ingredientes||[]).length>0;
                 return (
                   <div className="franja-slot raciones-slot" key={idx} style={{marginBottom:6}}>
                     <div className="slot-top-line">
-                      <span className="slot-recipe-name">{receta.titulo}</span>
-                      <button className="slot-remove" onClick={()=>onRemove(f.id, idx)} aria-label="Quitar">×</button>
+                      <span className="slot-recipe-name">
+                        {receta.titulo}
+                        {ajustado && <span className="ajustado-badge">Ajustado hoy</span>}
+                      </span>
+                      <div className="slot-top-actions">
+                        {tieneIngredientes && (
+                          <button
+                            className="slot-edit"
+                            onClick={()=>setEditingItem({ franjaId:f.id, index:idx, item, receta })}
+                            aria-label="Editar cantidades para este día"
+                          >✎</button>
+                        )}
+                        <button className="slot-remove" onClick={()=>onRemove(f.id, idx)} aria-label="Quitar">×</button>
+                      </div>
                     </div>
                     <div className="slot-bottom-line">
-                      <div className="raciones-control">
-                        <button onClick={()=>onUpdateRaciones(f.id, idx, raciones-1)} disabled={raciones<=1} aria-label="Menos raciones">−</button>
-                        <span className="raciones-num">{raciones} {raciones===1 ? 'ración' : 'raciones'}</span>
-                        <button onClick={()=>onUpdateRaciones(f.id, idx, raciones+1)} aria-label="Más raciones">+</button>
-                      </div>
+                      {ajustado ? (
+                        <button className="link-btn" style={{fontSize:12.5, padding:'2px 0'}} onClick={()=>onUpdateIngredientes(f.id, idx, null)}>
+                          Quitar ajuste
+                        </button>
+                      ) : (
+                        <div className="raciones-control">
+                          <button onClick={()=>onUpdateRaciones(f.id, idx, raciones-1)} disabled={raciones<=1} aria-label="Menos raciones">−</button>
+                          <span className="raciones-num">{raciones} {raciones===1 ? 'ración' : 'raciones'}</span>
+                          <button onClick={()=>onUpdateRaciones(f.id, idx, raciones+1)} aria-label="Más raciones">+</button>
+                        </div>
+                      )}
                       <span className="slot-kcal">{kcalItem} kcal</span>
                     </div>
                   </div>
@@ -1219,6 +1293,18 @@ function DayPanel({ date, plan, recetaById, recetas, franjaList, kcalDeItem, onC
             setPickerFor(null);
           }}
           onClose={()=>setPickerFor(null)}
+        />
+      )}
+
+      {editingItem && (
+        <EditPlanItemForm
+          receta={editingItem.receta}
+          item={editingItem.item}
+          onSave={(ingredientesAjustados)=>{
+            onUpdateIngredientes(editingItem.franjaId, editingItem.index, ingredientesAjustados);
+            setEditingItem(null);
+          }}
+          onClose={()=>setEditingItem(null)}
         />
       )}
     </div>
@@ -1291,6 +1377,70 @@ function RecipePicker({ recetas, franjaLabel, onSelect, onCreateQuickExtra, onCl
   );
 }
 
+// ---------- Ajuste de cantidades de una receta SOLO para un día/franja concreto ----------
+function EditPlanItemForm({ receta, item, onSave, onClose }){
+  // parte del override ya guardado si existe, o de los ingredientes originales de la receta
+  const base = item.ingredientesOverride || receta.ingredientes || [];
+  const [ingredientes, setIngredientes] = useState(
+    base.map(i=> ({ ...i, id: i.id || uid() }))
+  );
+
+  const updateCantidad = (id, nuevaCantidad)=>{
+    setIngredientes(prev=> prev.map(ing=>{
+      if(ing.id!==id) return ing;
+      const kcalTotal = calcKcalTotalFromBase(ing.kcal100, nuevaCantidad, ing.unidad);
+      return { ...ing, cantidad: nuevaCantidad, kcalTotal: ing.kcal100 ? kcalTotal : ing.kcalTotal };
+    }));
+  };
+
+  const totalKcal = Math.round(calcTotalKcalBase(ingredientes));
+  const totalKcalOriginal = Math.round(calcTotalKcalBase(receta.ingredientes||[]));
+
+  const handleGuardar = ()=> onSave(ingredientes);
+  const handleRestaurar = ()=>{
+    setIngredientes((receta.ingredientes||[]).map(i=> ({ ...i, id: i.id || uid() })));
+  };
+
+  return (
+    <div className="recipe-picker-overlay" onClick={onClose}>
+      <div className="recipe-picker edit-plan-item" onClick={e=>e.stopPropagation()}>
+        <h3>Ajustar para hoy: {receta.titulo}</h3>
+        <p className="quick-extra-hint" style={{marginTop:-6}}>
+          Cambia las cantidades que realmente usaste. Solo afecta a esta entrada de hoy,
+          la receta guardada en tu recetario no se modifica.
+        </p>
+
+        {ingredientes.map(ing=>(
+          <div className="edit-ing-row" key={ing.id}>
+            <span className="edit-ing-name">{ing.nombre}</span>
+            <input
+              type="number" min="0" step="any"
+              value={ing.cantidad}
+              onChange={e=>updateCantidad(ing.id, e.target.value)}
+            />
+            <span className="edit-ing-unidad">{ing.unidad}</span>
+          </div>
+        ))}
+
+        <div className="edit-total-row">
+          <span>Total ajustado</span>
+          <span className="edit-total-kcal">{totalKcal} kcal</span>
+        </div>
+        {totalKcal !== totalKcalOriginal && (
+          <p className="quick-extra-hint" style={{marginTop:4}}>
+            Receta original: {totalKcalOriginal} kcal totales
+          </p>
+        )}
+
+        <div style={{display:'flex', gap:10, marginTop:16}}>
+          <button className="link-btn" onClick={handleRestaurar} style={{flex:1}}>Restaurar original</button>
+          <button className="quick-extra-confirm" onClick={handleGuardar}>Guardar para hoy</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ---------- Estadísticas ----------
 function StatsScreen({ recetas, plan }){
   const today = new Date();
@@ -1308,6 +1458,9 @@ function StatsScreen({ recetas, plan }){
   const kcalDeItem = (item)=>{
     const receta = recetaById(item.recetaId);
     if(!receta) return 0;
+    if(item.ingredientesOverride){
+      return calcTotalKcalBase(item.ingredientesOverride);
+    }
     return kcalPorPorcion(receta) * (item.raciones || 1);
   };
 

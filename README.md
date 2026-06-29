@@ -113,6 +113,13 @@ En la pestaña "Calendario" puedes planificar tus comidas en una vista mensual:
   (kcal totales de la receta ÷ porciones base) × raciones comidas — esto es
   independiente de las porciones base de la receta, que sirven para ajustar
   cantidades de ingredientes en su propio detalle.
+- Si ese día concreto usaste cantidades distintas a las habituales (por
+  ejemplo, echaste 80g de pasta en vez de los 70g de la receta), puedes
+  pulsar el icono ✎ junto a esa entrada para **ajustar las cantidades solo
+  para ese día**. Las kcal se recalculan al instante con los nuevos valores,
+  y la receta queda marcada como "Ajustado hoy" — la receta guardada en tu
+  recetario no se modifica, y puedes quitar el ajuste en cualquier momento
+  para volver a sus valores normales.
 - Además de elegir una receta ya guardada, puedes añadir algo suelto que no
   esté guardado como receta (un plátano, un yogur…) con solo su nombre y sus
   kcal totales — se guarda automáticamente en tu recetario como una receta de
