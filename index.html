@@ -222,7 +222,10 @@
     cursor:pointer; position:relative; padding:2px; gap:2px;
   }
   .cal-day.other-month{ opacity:0.35; }
-  .cal-day.today{ border:1.5px solid var(--oliva); }
+  .today-mark{
+    position:absolute; top:4px; right:4px; width:6px; height:6px; border-radius:50%;
+    background:var(--oliva); border:1px solid var(--blanco-papel);
+  }
   .cal-day.past:not(.other-month){ background:var(--crema-osc); }
   .cal-day.past:not(.other-month) .daynum{ color:#a39a8c; }
   .cal-day.past:not(.other-month) .daykcal{ color:#b8a99a; }
@@ -232,6 +235,17 @@
   .cal-day .daydots{ display:flex; gap:2px; margin-top:1px; }
   .cal-day .daydot{ width:4px; height:4px; border-radius:50%; background:var(--oliva); }
 
+  .cal-day.obj-verde{ background:#E3EBD9; border-color:#C5D6AE; }
+  .cal-day.obj-verde .daynum{ color:#3b5226; }
+  .cal-day.obj-verde .daykcal{ color:#4d6b30; }
+  .cal-day.obj-ambar{ background:#FBEAD0; border-color:#F0CE96; }
+  .cal-day.obj-ambar .daynum{ color:#8a5a17; }
+  .cal-day.obj-ambar .daykcal{ color:#9c6515; }
+  .cal-day.obj-rojo{ background:#F6DAD3; border-color:#E8AD9C; }
+  .cal-day.obj-rojo .daynum{ color:#8a3221; }
+  .cal-day.obj-rojo .daykcal{ color:#9c3a26; }
+  .cal-day.obj-verde.past, .cal-day.obj-ambar.past, .cal-day.obj-rojo.past{ opacity:0.75; }
+
   /* ---- Estadísticas ---- */
   .stats-row{ display:flex; gap:10px; margin-bottom:8px; }
   .stats-box{
@@ -240,19 +254,6 @@
   }
   .stats-num{ font-size:24px; font-weight:700; color:var(--terracota); line-height:1.1; }
   .stats-lbl{ font-size:10.5px; color:#8a8071; text-transform:uppercase; letter-spacing:0.3px; margin-top:6px; line-height:1.3; }
-
-  .ranking-list{ display:flex; flex-direction:column; gap:8px; }
-  .ranking-item{
-    display:flex; align-items:center; gap:12px; background:var(--blanco-papel);
-    border:1px solid var(--linea); border-radius:14px; padding:10px 14px;
-  }
-  .ranking-pos{
-    width:22px; flex-shrink:0; text-align:center; font-size:13px; font-weight:700; color:#a39a8c;
-    font-family:'fallback-serif',serif;
-  }
-  .ranking-item .stamp-sm{ width:38px; height:38px; font-size:17px; flex-shrink:0; }
-  .ranking-name{ flex:1; min-width:0; font-size:14.5px; font-weight:600; color:var(--carbon); }
-  .ranking-count{ font-size:13px; font-weight:700; color:var(--oliva); flex-shrink:0; }
 
   .franja-stats-list{ display:flex; flex-direction:column; gap:10px; margin-bottom:8px; }
   .franja-stats-item{
@@ -268,6 +269,38 @@
     height:100%; background:var(--terracota); border-radius:100px; transition:width .3s ease;
   }
   .franja-stats-num{ font-size:13px; font-weight:700; color:var(--terracota); flex-shrink:0; width:64px; text-align:right; }
+
+  .objetivo-edit-row{ display:flex; align-items:center; gap:8px; margin-bottom:8px; flex-wrap:wrap; }
+  .objetivo-edit-row input{
+    flex:1 1 120px; min-width:0; padding:11px 14px; border-radius:12px; border:1px solid var(--linea);
+    background:var(--blanco-papel); font-size:15px; color:var(--carbon);
+  }
+  .objetivo-edit-row input:focus{ outline:2px solid var(--oliva); outline-offset:1px; }
+  .objetivo-unit{ font-size:13px; color:#8a8071; flex-shrink:0; }
+  .objetivo-save-btn{
+    flex:1 1 100%; padding:11px 16px; border-radius:12px; border:none; background:var(--oliva);
+    color:var(--crema); font-size:14px; font-weight:700; cursor:pointer; margin-top:2px;
+  }
+  .objetivo-save-btn:disabled{ opacity:0.5; }
+  .objetivo-display-row{
+    display:flex; align-items:center; justify-content:space-between; background:var(--blanco-papel);
+    border:1px solid var(--linea); border-radius:14px; padding:14px 16px; margin-bottom:8px;
+  }
+  .objetivo-display-num{ font-size:17px; font-weight:700; color:var(--carbon); }
+
+  .objetivo-pct-row{ display:flex; gap:10px; margin-bottom:8px; }
+  .objetivo-pct-box{ flex:1; border-radius:14px; padding:14px 8px; text-align:center; }
+  .objetivo-pct-num{ font-size:20px; font-weight:700; }
+  .objetivo-pct-lbl{ font-size:10px; margin-top:4px; line-height:1.3; font-weight:600; }
+  .objetivo-pct-verde{ background:#E3EBD9; }
+  .objetivo-pct-verde .objetivo-pct-num{ color:#3b5226; }
+  .objetivo-pct-verde .objetivo-pct-lbl{ color:#4d6b30; }
+  .objetivo-pct-ambar{ background:#FBEAD0; }
+  .objetivo-pct-ambar .objetivo-pct-num{ color:#8a5a17; }
+  .objetivo-pct-ambar .objetivo-pct-lbl{ color:#9c6515; }
+  .objetivo-pct-rojo{ background:#F6DAD3; }
+  .objetivo-pct-rojo .objetivo-pct-num{ color:#8a3221; }
+  .objetivo-pct-rojo .objetivo-pct-lbl{ color:#9c3a26; }
 
   /* ---- panel de día (slide-up) ---- */
   .day-panel-overlay{
@@ -592,9 +625,10 @@ const DB_NAME = "recetario-db";
 const STORE = "recetas";
 const STORE_ALIMENTOS = "alimentos_personales";
 const STORE_PLAN = "planificacion";
+const STORE_CONFIG = "configuracion";
 function openDB(){
   return new Promise((resolve,reject)=>{
-    const req = indexedDB.open(DB_NAME, 3);
+    const req = indexedDB.open(DB_NAME, 4);
     req.onupgradeneeded = (e)=>{
       const db = e.target.result;
       if(!db.objectStoreNames.contains(STORE)){
@@ -605,6 +639,9 @@ function openDB(){
       }
       if(!db.objectStoreNames.contains(STORE_PLAN)){
         db.createObjectStore(STORE_PLAN, { keyPath: "fecha" }); // fecha en formato "YYYY-MM-DD"
+      }
+      if(!db.objectStoreNames.contains(STORE_CONFIG)){
+        db.createObjectStore(STORE_CONFIG, { keyPath: "clave" });
       }
     };
     req.onsuccess = ()=>resolve(req.result);
@@ -675,6 +712,26 @@ async function dbPutPlanDia(diaPlan){
   return new Promise((resolve,reject)=>{
     const tx = db.transaction(STORE_PLAN, "readwrite");
     tx.objectStore(STORE_PLAN).put(diaPlan);
+    tx.oncomplete = ()=>resolve();
+    tx.onerror = ()=>reject(tx.error);
+  });
+}
+
+// --- Configuración general (ej. objetivo de kcal diario) ---
+async function dbGetConfig(clave){
+  const db = await openDB();
+  return new Promise((resolve,reject)=>{
+    const tx = db.transaction(STORE_CONFIG, "readonly");
+    const req = tx.objectStore(STORE_CONFIG).get(clave);
+    req.onsuccess = ()=>resolve(req.result || null);
+    req.onerror = ()=>reject(req.error);
+  });
+}
+async function dbSetConfig(clave, valor){
+  const db = await openDB();
+  return new Promise((resolve,reject)=>{
+    const tx = db.transaction(STORE_CONFIG, "readwrite");
+    tx.objectStore(STORE_CONFIG).put({ clave, valor });
     tx.oncomplete = ()=>resolve();
     tx.onerror = ()=>reject(tx.error);
   });
@@ -766,6 +823,7 @@ function App(){
   const [recetas, setRecetas] = useState([]);
   const [alimentosPersonales, setAlimentosPersonales] = useState([]);
   const [plan, setPlan] = useState({}); // { "YYYY-MM-DD": {desayuno,comida,cena,otros} }
+  const [objetivoKcal, setObjetivoKcal] = useState(null); // número o null si no se ha definido
   const [loaded, setLoaded] = useState(false);
   const [tab, setTab] = useState("recetario"); // recetario | calendario
   const [view, setView] = useState({ screen:"list" }); // list | detail | form
@@ -775,14 +833,20 @@ function App(){
   const toastTimer = useRef(null);
 
   useEffect(()=>{
-    Promise.all([dbGetAll(), dbGetAllAlimentos(), dbGetAllPlan()]).then(([recetasData, alimentosData, planData])=>{
+    Promise.all([dbGetAll(), dbGetAllAlimentos(), dbGetAllPlan(), dbGetConfig("objetivoKcal")]).then(([recetasData, alimentosData, planData, configObjetivo])=>{
       setRecetas(recetasData.sort((a,b)=> (b.creadoEn||0)-(a.creadoEn||0)));
       setAlimentosPersonales(alimentosData);
       const planMap = {};
       planData.forEach(d=>{ planMap[d.fecha] = d; });
       setPlan(planMap);
+      if(configObjetivo && configObjetivo.valor) setObjetivoKcal(configObjetivo.valor);
       setLoaded(true);
     }).catch(()=>setLoaded(true));
+  },[]);
+
+  const updateObjetivoKcal = useCallback(async (valor)=>{
+    setObjetivoKcal(valor);
+    await dbSetConfig("objetivoKcal", valor);
   },[]);
 
   const showToast = useCallback((msg)=>{
@@ -1046,6 +1110,7 @@ function App(){
           recetas={recetas}
           plan={plan}
           alimentosPersonales={alimentosPersonales}
+          objetivoKcal={objetivoKcal}
           onAddToSlot={addToPlanSlot}
           onRemoveFromSlot={removeFromPlanSlot}
           onUpdateRaciones={updatePlanSlotRaciones}
@@ -1055,7 +1120,7 @@ function App(){
       )}
 
       {tab==="estadisticas" && (
-        <StatsScreen recetas={recetas} plan={plan} />
+        <StatsScreen recetas={recetas} plan={plan} objetivoKcal={objetivoKcal} onUpdateObjetivoKcal={updateObjetivoKcal} />
       )}
 
       <nav className="bottom-nav">
@@ -1195,7 +1260,7 @@ function DetailScreen({ recipe, onClose, onEdit, onDelete }){
 }
 
 // ---------- Calendario de planificación ----------
-function CalendarScreen({ recetas, plan, alimentosPersonales, onAddToSlot, onRemoveFromSlot, onUpdateRaciones, onUpdateIngredientes, onCreateQuickExtra }){
+function CalendarScreen({ recetas, plan, alimentosPersonales, objetivoKcal, onAddToSlot, onRemoveFromSlot, onUpdateRaciones, onUpdateIngredientes, onCreateQuickExtra }){
   const today = new Date();
   const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
   const [cursor, setCursor] = useState(new Date(today.getFullYear(), today.getMonth(), 1));
@@ -1237,6 +1302,16 @@ function CalendarScreen({ recetas, plan, alimentosPersonales, onAddToSlot, onRem
     const dia = plan[fechaKey];
     if(!dia) return 0;
     return FRANJAS.reduce((sum,f)=> sum + franjaList(dia,f.id).length, 0);
+  };
+
+  // color según el objetivo de kcal: "verde" (<=objetivo), "ambar" (hasta +5%), "rojo" (más allá)
+  // null si no hay objetivo definido o el día no tiene nada planificado
+  const colorObjetivo = (fechaKey)=>{
+    if(!objetivoKcal || elementosDelDia(fechaKey)===0) return null;
+    const kcal = kcalDelDia(fechaKey);
+    if(kcal <= objetivoKcal) return "verde";
+    if(kcal <= objetivoKcal*1.05) return "ambar";
+    return "rojo";
   };
 
   // --- construir cuadrícula del mes (lunes a domingo), agrupada en semanas ---
@@ -1305,12 +1380,14 @@ function CalendarScreen({ recetas, plan, alimentosPersonales, onAddToSlot, onRem
             const numElementos = elementosDelDia(key);
             const isToday = isSameDay(gd.date, today);
             const isPast = gd.date < todayStart && !isToday;
+            const colorObj = colorObjetivo(key);
             return (
               <div
                 key={idx}
-                className={"cal-day"+(gd.otherMonth?" other-month":"")+(isToday?" today":"")+(isPast?" past":"")}
+                className={"cal-day"+(gd.otherMonth?" other-month":"")+(isPast?" past":"")+(colorObj?" obj-"+colorObj:"")}
                 onClick={()=>setSelectedDay(gd.date)}
               >
+                {isToday && <span className="today-mark" aria-label="Hoy"></span>}
                 <span className="daynum">{gd.date.getDate()}</span>
                 {kcal>0 && <span className="daykcal">{kcal}</span>}
                 {numElementos>0 && (
@@ -1652,10 +1729,12 @@ function EditPlanItemForm({ receta, item, onSave, onClose }){
 }
 
 // ---------- Estadísticas ----------
-function StatsScreen({ recetas, plan }){
+function StatsScreen({ recetas, plan, objetivoKcal, onUpdateObjetivoKcal }){
   const today = new Date();
   const todayKey = fechaToKey(today);
   const recetaById = (id)=> recetas.find(r=>r.id===id);
+  const [objetivoInput, setObjetivoInput] = useState(objetivoKcal ? objetivoKcal.toString() : "");
+  const [editingObjetivo, setEditingObjetivo] = useState(!objetivoKcal);
 
   const franjaList = (dia, franjaId)=>{
     if(!dia) return [];
@@ -1719,20 +1798,33 @@ function StatsScreen({ recetas, plan }){
     return { ...f, media: Math.round(total/diasConDatos.length) };
   });
 
-  // --- ranking de recetas más planificadas (contando todas las apariciones en todo el historial del plan) ---
-  const conteo = {};
-  Object.values(plan).forEach(dia=>{
-    FRANJAS.forEach(f=>{
-      franjaList(dia, f.id).forEach(item=>{
-        conteo[item.recetaId] = (conteo[item.recetaId]||0) + 1;
-      });
+  // --- % de días en verde / ámbar / rojo respecto al objetivo, sobre todo el historial planificado ---
+  const diasConPlan = Object.keys(plan).filter(key => elementosDelDia(key)>0);
+  let resumenObjetivo = null;
+  if(objetivoKcal && diasConPlan.length>0){
+    let verde=0, ambar=0, rojo=0;
+    diasConPlan.forEach(key=>{
+      const kcal = kcalDelDia(key);
+      if(kcal <= objetivoKcal) verde++;
+      else if(kcal <= objetivoKcal*1.05) ambar++;
+      else rojo++;
     });
-  });
-  const ranking = Object.entries(conteo)
-    .map(([id, veces])=> ({ receta: recetaById(id), veces }))
-    .filter(r=> r.receta)
-    .sort((a,b)=> b.veces - a.veces)
-    .slice(0, 8);
+    const total = diasConPlan.length;
+    resumenObjetivo = {
+      verde: Math.round((verde/total)*100),
+      ambar: Math.round((ambar/total)*100),
+      rojo: Math.round((rojo/total)*100),
+      totalDias: total,
+    };
+  }
+
+  const handleGuardarObjetivo = ()=>{
+    const val = parseInt(objetivoInput);
+    if(!isNaN(val) && val>0){
+      onUpdateObjetivoKcal(val);
+      setEditingObjetivo(false);
+    }
+  };
 
   return (
     <React.Fragment>
@@ -1744,7 +1836,26 @@ function StatsScreen({ recetas, plan }){
       </div>
 
       <main>
-        <div className="section-label" style={{marginTop:0}}>Calorías planificadas</div>
+        <div className="section-label" style={{marginTop:0}}>Objetivo diario</div>
+        {editingObjetivo ? (
+          <div className="objetivo-edit-row">
+            <input
+              type="number" min="1" placeholder="Ej. 2000"
+              value={objetivoInput}
+              onChange={e=>setObjetivoInput(e.target.value)}
+              autoFocus
+            />
+            <span className="objetivo-unit">kcal/día</span>
+            <button className="objetivo-save-btn" disabled={!objetivoInput || isNaN(parseInt(objetivoInput))} onClick={handleGuardarObjetivo}>Guardar</button>
+          </div>
+        ) : (
+          <div className="objetivo-display-row">
+            <span className="objetivo-display-num">{objetivoKcal} kcal/día</span>
+            <button className="link-btn" onClick={()=>{ setObjetivoInput(objetivoKcal.toString()); setEditingObjetivo(true); }}>Editar</button>
+          </div>
+        )}
+
+        <div className="section-label">Calorías planificadas</div>
         <div className="stats-row">
           <div className="stats-box">
             <div className="stats-num">{kcalHoy || '—'}</div>
@@ -1777,24 +1888,27 @@ function StatsScreen({ recetas, plan }){
           ))}
         </div>
 
-        <div className="section-label">Recetas más planificadas</div>
-        {ranking.length===0 ? (
-          <div className="empty" style={{padding:'40px 20px'}}>
-            <div className="stamp serif">📊</div>
-            <h3>Aún no hay datos</h3>
-            <p>Planifica algunas comidas en el calendario para ver aquí tus recetas más repetidas.</p>
-          </div>
-        ) : (
-          <div className="ranking-list">
-            {ranking.map((r,idx)=>(
-              <div className="ranking-item" key={r.receta.id}>
-                <span className="ranking-pos">{idx+1}</span>
-                <div className="stamp-sm">{catIcon(r.receta.categoria)}</div>
-                <span className="ranking-name">{r.receta.titulo}</span>
-                <span className="ranking-count">{r.veces}×</span>
+        {resumenObjetivo && (
+          <React.Fragment>
+            <div className="section-label">Cumplimiento del objetivo</div>
+            <p className="quick-extra-hint" style={{marginTop:-8, marginBottom:14}}>
+              Sobre {resumenObjetivo.totalDias} {resumenObjetivo.totalDias===1?'día':'días'} planificados.
+            </p>
+            <div className="objetivo-pct-row">
+              <div className="objetivo-pct-box objetivo-pct-verde">
+                <div className="objetivo-pct-num">{resumenObjetivo.verde}%</div>
+                <div className="objetivo-pct-lbl">Dentro del objetivo</div>
               </div>
-            ))}
-          </div>
+              <div className="objetivo-pct-box objetivo-pct-ambar">
+                <div className="objetivo-pct-num">{resumenObjetivo.ambar}%</div>
+                <div className="objetivo-pct-lbl">Hasta +5%</div>
+              </div>
+              <div className="objetivo-pct-box objetivo-pct-rojo">
+                <div className="objetivo-pct-num">{resumenObjetivo.rojo}%</div>
+                <div className="objetivo-pct-lbl">Por encima</div>
+              </div>
+            </div>
+          </React.Fragment>
         )}
       </main>
     </React.Fragment>

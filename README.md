@@ -162,8 +162,14 @@ En la pestaña "Estadísticas" puedes ver:
 - La **media de kcal por franja** (Desayuno/Comida/Cena/Otros), con una barra
   visual proporcional, para ver de un vistazo si sueles comer más fuerte en
   el desayuno, la comida o la cena.
-- Un ranking de las recetas que más repites en tu planificación, contando
-  todas las veces que las has asignado a cualquier día y franja.
+- Un **objetivo de kcal diario** que tú defines, editable en cualquier
+  momento desde "Editar". Una vez definido, el calendario tiñe el fondo de
+  cada día planificado según cómo te quedaste ese día: **verde** si no
+  superaste el objetivo, **ámbar/naranja** si lo superaste hasta un 5%, y
+  **rojo** si lo superaste más de un 5%. Los días sin nada planificado, o
+  si no has definido objetivo, se quedan sin teñir.
+- Un resumen de **cumplimiento del objetivo**: el porcentaje de tus días
+  planificados que cayeron en cada uno de esos tres colores.
 
 ## Sobre la IA para estimar calorías
 
