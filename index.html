@@ -2145,8 +2145,11 @@ function FormScreen({ recipe, categoriaInicial, onClose, onSave, alimentosPerson
 
             <div className="ing-card-kcal-info">
               {ing.lookupStatus==="searching" && <span className="ing-kcal-hint">Buscando…</span>}
-              {ing.lookupStatus==="found" && ing.kcalMode==="auto" && (
-                <span className="ing-kcal-chip found">✓ {ing.kcal100} kcal/100{ing.unidad==='ml'?'ml':'g'}{ing.origen==="personal" ? " · tu tabla" : ""}</span>
+              {ing.lookupStatus==="found" && ing.kcalMode==="auto" && !manualKcalOpenFor[ing.id] && (
+                <span className="ing-kcal-hint">
+                  <span className="ing-kcal-chip found">✓ {ing.kcal100} kcal/100{ing.unidad==='ml'?'ml':'g'}{ing.origen==="personal" ? " · tu tabla" : ""}</span>
+                  {' '}<button type="button" className="ing-kcal-link" onClick={()=>setManualKcalOpenFor(prev=>({...prev,[ing.id]:true}))}>editar</button>
+                </span>
               )}
               {ing.lookupStatus==="none" && !manualKcalOpenFor[ing.id] && ing.kcalMode!=="manual" && (
                 <span className="ing-kcal-hint">
@@ -2161,6 +2164,7 @@ function FormScreen({ recipe, categoriaInicial, onClose, onSave, alimentosPerson
                     type="number" min="0" step="any"
                     className="ing-kcal-manual-input"
                     value={ing.kcal100}
+                    autoFocus
                     onChange={e=>handleManualKcal100Change(ing, e.target.value)}
                     onBlur={()=>handleManualKcal100Blur(ing)}
                   />

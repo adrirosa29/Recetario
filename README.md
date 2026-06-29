@@ -110,7 +110,10 @@ de sugerencias combinando tu tabla personal y la tabla local — tocando una
 sugerencia se rellena el nombre y las kcal/100g automáticamente. La cantidad
 se ajusta con un control −/+ a tu lado, y si el ingrediente no está en
 ninguna tabla, un enlace "añadir kcal/100g" revela un campo para escribirlo
-a mano. Cada tarjeta muestra sus kcal calculadas, y al final de la lista
+a mano. Si la app encuentra una coincidencia automática que no es correcta
+(por ejemplo, "café con leche" puede coincidir por error con "leche"), puedes
+pulsar "editar" junto al valor encontrado para corregirlo a mano en cualquier
+momento. Cada tarjeta muestra sus kcal calculadas, y al final de la lista
 verás el total de kcal de toda la receta.
 
 Si un ingrediente no está en ninguna tabla, simplemente introduce las kcal/100g
