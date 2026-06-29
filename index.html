@@ -256,11 +256,11 @@
 
   .stats-today-box{
     background:var(--blanco-papel); border:1.5px solid var(--linea); border-radius:18px;
-    padding:22px 16px; text-align:center; margin-bottom:10px;
+    padding:32px 16px; text-align:center; width:100%;
   }
-  .stats-today-num{ font-size:36px; font-weight:700; color:var(--terracota); line-height:1.1; }
-  .stats-today-lbl{ font-size:12px; color:#8a8071; text-transform:uppercase; letter-spacing:0.4px; margin-top:6px; font-weight:700; }
-  .stats-today-msg{ font-size:12.5px; font-weight:600; margin-top:8px; }
+  .stats-today-num{ font-size:44px; font-weight:700; color:var(--terracota); line-height:1.1; }
+  .stats-today-lbl{ font-size:13px; color:#8a8071; text-transform:uppercase; letter-spacing:0.4px; margin-top:8px; font-weight:700; }
+  .stats-today-msg{ font-size:13.5px; font-weight:600; margin-top:10px; }
   .stats-today-box.obj-verde{ background:#E3EBD9; border-color:#C5D6AE; }
   .stats-today-box.obj-verde .stats-today-num{ color:#3b5226; }
   .stats-today-box.obj-verde .stats-today-lbl{ color:#4d6b30; }
@@ -274,13 +274,19 @@
   .stats-today-box.obj-rojo .stats-today-lbl{ color:#9c3a26; }
   .stats-today-box.obj-rojo .stats-today-msg{ color:#8a3221; }
 
-  .stats-carousel-hint{ font-size:11px; color:#a39a8c; text-align:center; margin-bottom:8px; }
-  .stats-carousel{
-    display:flex; gap:10px; overflow-x:auto; scroll-snap-type:x mandatory;
-    padding-bottom:4px; margin-bottom:8px; scrollbar-width:none;
+  .stats-pager{
+    display:flex; overflow-x:auto; scroll-snap-type:x mandatory;
+    scrollbar-width:none; margin:0 -20px; padding:0 20px;
   }
-  .stats-carousel::-webkit-scrollbar{ display:none; }
-  .stats-carousel .stats-box{ flex:0 0 calc(50% - 5px); scroll-snap-align:start; }
+  .stats-pager::-webkit-scrollbar{ display:none; }
+  .stats-page{
+    flex:0 0 100%; scroll-snap-align:start; display:flex; align-items:center;
+    padding-right:20px; box-sizing:border-box;
+  }
+  .stats-medias-row{ display:flex; gap:10px; width:100%; }
+  .stats-pager-dots{ display:flex; justify-content:center; gap:6px; margin:10px 0 8px; }
+  .stats-dot{ width:6px; height:6px; border-radius:50%; background:var(--linea); }
+  .stats-dot.active{ background:var(--oliva); width:16px; border-radius:100px; transition:width .2s ease; }
 
   .franja-stats-list{ display:flex; flex-direction:column; gap:10px; margin-bottom:8px; }
   .franja-stats-item{
@@ -1763,6 +1769,14 @@ function StatsScreen({ recetas, plan, objetivoKcal, onUpdateObjetivoKcal }){
   const recetaById = (id)=> recetas.find(r=>r.id===id);
   const [objetivoInput, setObjetivoInput] = useState(objetivoKcal ? objetivoKcal.toString() : "");
   const [editingObjetivo, setEditingObjetivo] = useState(!objetivoKcal);
+  const [pagerPage, setPagerPage] = useState(0);
+  const pagerRef = useRef(null);
+  const handlePagerScroll = ()=>{
+    const el = pagerRef.current;
+    if(!el) return;
+    const page = Math.round(el.scrollLeft / el.clientWidth);
+    setPagerPage(page);
+  };
 
   const franjaList = (dia, franjaId)=>{
     if(!dia) return [];
@@ -1890,28 +1904,36 @@ function StatsScreen({ recetas, plan, objetivoKcal, onUpdateObjetivoKcal }){
         )}
 
         <div className="section-label">Calorías planificadas</div>
-        <div className={"stats-today-box"+(colorObjetivoHoy?" obj-"+colorObjetivoHoy:"")}>
-          <div className="stats-today-num">{kcalHoy || '—'}</div>
-          <div className="stats-today-lbl">Hoy</div>
-          {colorObjetivoHoy && (
-            <div className="stats-today-msg">
-              {colorObjetivoHoy==="verde" && "Dentro del objetivo"}
-              {colorObjetivoHoy==="ambar" && "Hasta +5% del objetivo"}
-              {colorObjetivoHoy==="rojo" && "Por encima del objetivo"}
+        <div className="stats-pager" ref={pagerRef} onScroll={handlePagerScroll}>
+          <div className="stats-page">
+            <div className={"stats-today-box"+(colorObjetivoHoy?" obj-"+colorObjetivoHoy:"")}>
+              <div className="stats-today-num">{kcalHoy || '—'}</div>
+              <div className="stats-today-lbl">Hoy</div>
+              {colorObjetivoHoy && (
+                <div className="stats-today-msg">
+                  {colorObjetivoHoy==="verde" && "Dentro del objetivo"}
+                  {colorObjetivoHoy==="ambar" && "Hasta +5% del objetivo"}
+                  {colorObjetivoHoy==="rojo" && "Por encima del objetivo"}
+                </div>
+              )}
             </div>
-          )}
+          </div>
+          <div className="stats-page">
+            <div className="stats-medias-row">
+              <div className="stats-box">
+                <div className="stats-num">{promedioSemanal || '—'}</div>
+                <div className="stats-lbl">Media / día<br/>esta semana</div>
+              </div>
+              <div className="stats-box">
+                <div className="stats-num">{promedioMensual || '—'}</div>
+                <div className="stats-lbl">Media / día<br/>este mes</div>
+              </div>
+            </div>
+          </div>
         </div>
-
-        <div className="stats-carousel-hint">Desliza para ver más medias ‹›</div>
-        <div className="stats-carousel">
-          <div className="stats-box">
-            <div className="stats-num">{promedioSemanal || '—'}</div>
-            <div className="stats-lbl">Media / día<br/>esta semana</div>
-          </div>
-          <div className="stats-box">
-            <div className="stats-num">{promedioMensual || '—'}</div>
-            <div className="stats-lbl">Media / día<br/>este mes</div>
-          </div>
+        <div className="stats-pager-dots">
+          <span className={"stats-dot"+(pagerPage===0?" active":"")}></span>
+          <span className={"stats-dot"+(pagerPage===1?" active":"")}></span>
         </div>
 
         <div className="section-label">Media de kcal por franja</div>

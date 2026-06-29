@@ -166,10 +166,11 @@ En la pestaña "Calendario" puedes planificar tus comidas en una vista mensual:
 
 En la pestaña "Estadísticas" puedes ver:
 
-- Las kcal planificadas para hoy, en una tarjeta destacada que se tiñe del
-  mismo color que el calendario (verde/ámbar/rojo) según tu objetivo. Justo
-  debajo, deslizando hacia la izquierda, puedes ver la media diaria de la
-  semana actual y del mes actual.
+- Las kcal planificadas para hoy, en una tarjeta a pantalla completa que se
+  tiñe del mismo color que el calendario (verde/ámbar/rojo) según tu
+  objetivo. Deslizando el dedo hacia la izquierda pasas a una segunda
+  pantalla con la media diaria de la semana actual y del mes actual juntas,
+  con un punto indicador abajo para ver en qué pantalla estás.
 - La media diaria de kcal de la semana actual y del mes actual (calculada
   solo sobre los días que tengan algo planificado).
 - La **media de kcal por franja** (Desayuno/Comida/Cena/Otros), con una barra
