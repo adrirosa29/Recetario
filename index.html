@@ -455,16 +455,67 @@
   .field input.field-invalid:focus{ outline:2px solid var(--rojo-error); }
   .field-error-msg{ font-size:12px; color:var(--rojo-error); margin:6px 0 0; font-weight:600; }
 
-  .ing-form-row{
-    background:var(--blanco-papel); border:1px solid var(--linea); border-radius:14px;
-    padding:14px; margin-bottom:10px; position:relative;
+  .ing-card{
+    background:var(--blanco-papel); border:1px solid var(--linea); border-radius:16px;
+    padding:14px; margin-bottom:10px; position:relative; transition:border-color .3s ease;
   }
-  .ing-form-row .top-line{ display:flex; gap:6px; margin-bottom:8px; }
-  .ing-form-row .top-line input:first-child{ flex:1 1 auto; min-width:0; }
-  .ing-form-row .top-line input:nth-child(2){ flex:0 0 56px; min-width:0; padding-left:8px; padding-right:6px; }
-  .ing-form-row .top-line select{ flex:0 0 64px; min-width:0; padding-left:6px; padding-right:2px; font-size:13px; }
-  .ing-form-row .bottom-line{ display:flex; gap:8px; align-items:center; }
-  .ing-form-row .bottom-line input{ flex:1; min-width:0; }
+  .ing-card.ing-card-new{ border:2px solid var(--oliva); }
+  .ing-card-name-row{ display:flex; align-items:center; gap:8px; }
+  .ing-card-name-input{
+    flex:1; min-width:0; border:none; background:transparent; font-size:16px; font-weight:600;
+    color:var(--carbon); padding:4px 0; outline:none; font-family:inherit;
+  }
+  .ing-card-name-input::placeholder{ color:#b8ad9a; font-weight:500; }
+  .ing-card-kcal-info{ margin-top:7px; min-height:18px; }
+  .ing-kcal-hint{ font-size:11.5px; color:#a39a8c; line-height:1.4; }
+  .ing-kcal-link{
+    background:none; border:none; color:var(--oliva); font-size:11.5px; font-weight:700;
+    text-decoration:underline; cursor:pointer; padding:0; font-family:inherit;
+  }
+  .ing-kcal-chip{
+    display:inline-block; font-size:11.5px; font-weight:700; color:var(--oliva);
+    background:rgba(74,93,58,0.1); padding:3px 9px; border-radius:100px;
+  }
+  .ing-kcal-manual-row{ display:flex; align-items:center; gap:8px; }
+  .ing-kcal-manual-input{
+    width:84px; padding:6px 9px; border-radius:9px; border:1px solid var(--linea);
+    background:var(--crema); font-size:12.5px; flex-shrink:0;
+  }
+  .ing-kcal-manual-input:focus{ outline:2px solid var(--oliva); outline-offset:1px; }
+
+  .ing-card-controls{ display:flex; align-items:center; gap:10px; margin-top:12px; }
+  .ing-qty-stepper{
+    display:flex; align-items:center; gap:6px; background:var(--crema); border-radius:12px;
+    padding:5px 6px; flex-shrink:0;
+  }
+  .ing-qty-stepper button{
+    width:26px; height:26px; border-radius:50%; border:1.5px solid var(--oliva); background:none;
+    color:var(--oliva); font-size:15px; line-height:1; cursor:pointer; flex-shrink:0;
+    display:flex; align-items:center; justify-content:center; padding:0;
+  }
+  .ing-qty-stepper button:disabled{ opacity:0.3; border-color:#b8ad9a; cursor:default; }
+  .ing-qty-stepper button:not(:disabled):active{ background:var(--oliva); color:var(--crema); }
+  .ing-qty-stepper input{
+    width:46px; border:none; background:transparent; text-align:center; font-size:15px;
+    font-weight:700; color:var(--carbon); padding:0; outline:none;
+  }
+  .ing-qty-stepper input:disabled{ color:#b8ad9a; }
+  .ing-unidad-select{
+    flex-shrink:0; padding:7px 6px; border-radius:10px; border:1px solid var(--linea);
+    background:var(--blanco-papel); font-size:13px; color:var(--carbon); max-width:62px;
+  }
+  .ing-card-remove{
+    background:none; border:none; color:#b8ad9a; font-size:20px; cursor:pointer;
+    padding:0 2px; flex-shrink:0; line-height:1;
+  }
+  .ing-card-kcal-total{ flex:1; text-align:right; font-size:14px; font-weight:700; color:var(--terracota); }
+
+  .ing-total-row{
+    display:flex; justify-content:space-between; align-items:center; margin-top:18px;
+    padding-top:14px; border-top:1.5px solid var(--linea); font-size:14.5px; font-weight:600;
+    color:var(--carbon);
+  }
+  .ing-total-kcal{ font-size:19px; font-weight:700; color:var(--terracota); }
 
   .suggest-dropdown{
     position:absolute; top:calc(100% + 4px); left:0; right:0; z-index:35;
@@ -1752,7 +1803,7 @@ function StatsScreen({ recetas, plan }){
 
 // ---------- Form screen (create/edit) ----------
 function emptyIngredient(){
-  return { id: uid(), nombre:"", cantidad:"", unidad:"g", kcalTotal:"", kcalMode:"manual", kcal100:"" };
+  return { id: uid(), nombre:"", cantidad:"", unidad:"g", kcalTotal:"", kcalMode:"", kcal100:"" };
 }
 // recalcula kcalTotal a partir de kcal100, cantidad y unidad (regla de tres simple)
 function calcKcalTotalFromBase(kcal100, cantidad, unidad){
@@ -1784,9 +1835,12 @@ function FormScreen({ recipe, categoriaInicial, onClose, onSave, alimentosPerson
   const [destacada, setDestacada] = useState(recipe? !!recipe.destacada : false);
   const [suggestOpenFor, setSuggestOpenFor] = useState(null); // id del ingrediente con sugerencias abiertas
   const [suggestions, setSuggestions] = useState([]);
+  const [manualKcalOpenFor, setManualKcalOpenFor] = useState({}); // { [ingId]: true } — campo manual revelado
 
   const porcionesValidas = parseInt(porciones)>=1;
   const canSave = titulo.trim().length>0 && porcionesValidas;
+
+  const [justAddedId, setJustAddedId] = useState(null);
 
   const updateIngredient = (id, patch)=>{
     setIngredientes(prev=>prev.map(ing=> ing.id===id ? {...ing, ...patch} : ing));
@@ -1794,16 +1848,21 @@ function FormScreen({ recipe, categoriaInicial, onClose, onSave, alimentosPerson
   const removeIngredient = (id)=>{
     setIngredientes(prev=> prev.length>1 ? prev.filter(ing=>ing.id!==id) : prev);
   };
-  const addIngredient = ()=> setIngredientes(prev=>[...prev, emptyIngredient()]);
+  const addIngredient = ()=>{
+    const nuevo = emptyIngredient();
+    setIngredientes(prev=>[...prev, nuevo]);
+    setJustAddedId(nuevo.id);
+    setTimeout(()=>setJustAddedId(prev=> prev===nuevo.id ? null : prev), 1500);
+  };
+  const ingredientesConKcal = ingredientes.filter(i=>i.kcalTotal).length;
 
   const updatePaso = (i, val)=> setPasos(prev=> prev.map((p,idx)=> idx===i? val : p));
   const removePaso = (i)=> setPasos(prev=> prev.length>1 ? prev.filter((_,idx)=>idx!==i) : prev);
   const addPaso = ()=> setPasos(prev=>[...prev, ""]);
 
-  // búsqueda automática (modo "tabla"): busca en alimentos personales + tabla local
+  // búsqueda automática: siempre intenta encontrar el alimento en tabla personal + tabla local
   const debounceRefs = useRef({});
   const triggerLookup = (ing)=>{
-    if(ing.kcalMode!=="auto") return;
     clearTimeout(debounceRefs.current[ing.id]);
     debounceRefs.current[ing.id] = setTimeout(async ()=>{
       if(!ing.nombre || ing.nombre.trim().length<2){
@@ -1813,11 +1872,11 @@ function FormScreen({ recipe, categoriaInicial, onClose, onSave, alimentosPerson
       updateIngredient(ing.id, { lookupStatus:"searching" });
       const result = await lookupKcalPer100g(ing.nombre, alimentosPersonales);
       if(!result){
-        updateIngredient(ing.id, { lookupStatus:"none", kcal100:"" , kcalTotal:""});
+        updateIngredient(ing.id, { lookupStatus:"none" });
         return;
       }
       const kcalTotal = calcKcalTotalFromBase(result.kcal100, ing.cantidad, ing.unidad);
-      updateIngredient(ing.id, { lookupStatus:"found", kcal100: result.kcal100.toString(), kcalTotal, origen: result.origen });
+      updateIngredient(ing.id, { lookupStatus:"found", kcalMode:"auto", kcal100: result.kcal100.toString(), kcalTotal, origen: result.origen });
     }, 250);
   };
 
@@ -1827,35 +1886,36 @@ function FormScreen({ recipe, categoriaInicial, onClose, onSave, alimentosPerson
     return calcKcalTotalFromBase(ing.kcal100, newQty, newUnidad);
   };
 
-  // cuando el usuario teclea kcal100 a mano (modo manual)
+  // cuando el usuario teclea kcal100 a mano (tras no encontrar coincidencia)
   const handleManualKcal100Change = (ing, newKcal100)=>{
     const kcalTotal = calcKcalTotalFromBase(newKcal100, ing.cantidad, ing.unidad);
-    updateIngredient(ing.id, { kcal100: newKcal100, kcalTotal });
+    updateIngredient(ing.id, { kcal100: newKcal100, kcalTotal, kcalMode:"manual" });
   };
 
   // al salir del campo de kcal100 manual, guarda el alimento en la tabla personal para no repetirlo
   const handleManualKcal100Blur = (ing)=>{
-    if(ing.kcalMode==="manual" && ing.nombre.trim() && ing.kcal100 && !isNaN(parseFloat(ing.kcal100))){
+    if(ing.nombre.trim() && ing.kcal100 && !isNaN(parseFloat(ing.kcal100))){
       onSaveAlimentoPersonal(ing.nombre.trim(), ing.kcal100);
     }
   };
 
-  // mientras se escribe el nombre, muestra sugerencias de la tabla personal + tabla local
+  // mientras se escribe el nombre, muestra sugerencias y dispara la búsqueda automática
   const handleNombreChange = (ing, newNombre)=>{
     updateIngredient(ing.id, {nombre:newNombre});
-    if(ing.kcalMode==="auto") triggerLookup({...ing, nombre:newNombre});
+    triggerLookup({...ing, nombre:newNombre});
     const matches = suggestFoods(newNombre, alimentosPersonales, 5);
     setSuggestions(matches);
     setSuggestOpenFor(matches.length>0 ? ing.id : null);
   };
 
-  // al elegir una sugerencia, se rellena nombre + kcal100 y se recalcula el total, sin importar el modo
+  // al elegir una sugerencia, se rellena nombre + kcal100 y se recalcula el total
   const handleSelectSuggestion = (ing, sugerencia)=>{
     const kcalTotal = calcKcalTotalFromBase(sugerencia.kcal100, ing.cantidad, ing.unidad);
     updateIngredient(ing.id, {
       nombre: sugerencia.nombre,
       kcal100: sugerencia.kcal100.toString(),
       kcalTotal,
+      kcalMode:"auto",
       lookupStatus: "found",
       origen: sugerencia.origen,
     });
@@ -1935,13 +1995,19 @@ function FormScreen({ recipe, categoriaInicial, onClose, onSave, alimentosPerson
         </div>
 
         <div className="section-label">Ingredientes</div>
-        {ingredientes.map((ing)=>(
-          <div className="ing-form-row" key={ing.id}>
-            <div className="top-line" style={{position:'relative'}}>
+        {ingredientes.map((ing, ingIdx)=>{
+          const isNew = justAddedId===ing.id;
+          const step = (ing.unidad==='g' || ing.unidad==='ml') ? 10 : 1;
+          const kcalItemTotal = ing.kcalTotal ? Math.round(parseFloat(ing.kcalTotal)) : null;
+          return (
+          <div className={"ing-card"+(isNew?" ing-card-new":"")} key={ing.id}>
+            <div className="ing-card-name-row" style={{position:'relative'}}>
               <input
-                placeholder="Ingrediente (ej. arroz)"
+                placeholder="Nombre del ingrediente"
                 value={ing.nombre}
                 autoComplete="off"
+                autoFocus={isNew}
+                className="ing-card-name-input"
                 onChange={e=>handleNombreChange(ing, e.target.value)}
                 onFocus={()=>{
                   const matches = suggestFoods(ing.nombre, alimentosPersonales, 5);
@@ -1950,82 +2016,107 @@ function FormScreen({ recipe, categoriaInicial, onClose, onSave, alimentosPerson
                 }}
                 onBlur={()=> setTimeout(()=>setSuggestOpenFor(prev=> prev===ing.id ? null : prev), 150)}
               />
+              <button className="ing-card-remove" onClick={()=>removeIngredient(ing.id)} aria-label="Quitar ingrediente">×</button>
               {suggestOpenFor===ing.id && suggestions.length>0 && (
                 <div className="suggest-dropdown">
                   {suggestions.map((s,idx)=>(
-                    <div
-                      key={idx}
-                      className="suggest-item"
-                      onMouseDown={()=>handleSelectSuggestion(ing, s)}
-                    >
+                    <div key={idx} className="suggest-item" onMouseDown={()=>handleSelectSuggestion(ing, s)}>
                       <span className="suggest-name">{s.nombre}</span>
                       <span className="suggest-kcal">{s.kcal100} kcal/100{s.origen==="personal" ? " · tu tabla" : ""}</span>
                     </div>
                   ))}
                 </div>
               )}
-              <input
-                placeholder="Cant."
-                type="number" min="0" step="any"
-                value={ing.cantidad}
-                onChange={e=>{
-                  const newQty = e.target.value;
-                  const newKcal = recalcKcalTotal(ing, newQty, ing.unidad);
-                  updateIngredient(ing.id, {cantidad:newQty, kcalTotal:newKcal});
-                }}
-              />
-              <select value={ing.unidad} onChange={e=>{
-                const newUnidad = e.target.value;
-                const newKcal = recalcKcalTotal(ing, ing.cantidad, newUnidad);
-                updateIngredient(ing.id, {unidad:newUnidad, kcalTotal:newKcal});
-              }}>
-                {UNIDADES.map(u=> <option key={u} value={u}>{u}</option>)}
-              </select>
             </div>
-            <div className="bottom-line">
-              <select
-                style={{flex:'0 0 100px'}}
-                value={ing.kcalMode}
-                onChange={e=>{
-                  const mode = e.target.value;
-                  updateIngredient(ing.id, {kcalMode:mode});
-                  if(mode==="auto") triggerLookup({...ing, kcalMode:mode});
-                }}
-              >
-                <option value="manual">Kcal/100g manual</option>
-                <option value="auto">Buscar en tabla</option>
-              </select>
-              {ing.kcalMode==="manual" ? (
-                <React.Fragment>
+
+            <div className="ing-card-kcal-info">
+              {ing.lookupStatus==="searching" && <span className="ing-kcal-hint">Buscando…</span>}
+              {ing.lookupStatus==="found" && ing.kcalMode==="auto" && (
+                <span className="ing-kcal-chip found">✓ {ing.kcal100} kcal/100{ing.unidad==='ml'?'ml':'g'}{ing.origen==="personal" ? " · tu tabla" : ""}</span>
+              )}
+              {ing.lookupStatus==="none" && !manualKcalOpenFor[ing.id] && ing.kcalMode!=="manual" && (
+                <span className="ing-kcal-hint">
+                  No está en la tabla ·{' '}
+                  <button type="button" className="ing-kcal-link" onClick={()=>setManualKcalOpenFor(prev=>({...prev,[ing.id]:true}))}>añadir kcal/100g</button>
+                </span>
+              )}
+              {(ing.kcalMode==="manual" || manualKcalOpenFor[ing.id]) && (
+                <div className="ing-kcal-manual-row">
                   <input
                     placeholder="Kcal/100g"
                     type="number" min="0" step="any"
-                    style={{flex:'0 0 84px'}}
+                    className="ing-kcal-manual-input"
                     value={ing.kcal100}
                     onChange={e=>handleManualKcal100Change(ing, e.target.value)}
                     onBlur={()=>handleManualKcal100Blur(ing)}
                   />
-                  <div style={{flex:1, fontSize:12.5, color:'#8a8071', minWidth:0, lineHeight:1.3}}>
-                    {ing.kcal100 && ing.cantidad ? (
-                      (ing.unidad==="g"||ing.unidad==="ml")
-                        ? <span className="kcal-lookup-status found">= {ing.kcalTotal || 0} kcal</span>
-                        : <span className="kcal-lookup-status none">solo calcula en g/ml</span>
-                    ) : <span className="kcal-lookup-status none">kcal cada 100{ing.unidad==='ml'?'ml':'g'}</span>}
-                  </div>
-                </React.Fragment>
-              ) : (
-                <div style={{flex:1, fontSize:12.5, color:'#8a8071', display:'flex', alignItems:'center', minWidth:0, lineHeight:1.3}}>
-                  {ing.lookupStatus==="searching" && <span className="kcal-lookup-status searching">Buscando…</span>}
-                  {ing.lookupStatus==="found" && <span className="kcal-lookup-status found">✓ {ing.kcal100} kcal/100{ing.unidad==='ml'?'ml':'g'} → {ing.kcalTotal} kcal{ing.origen==="personal" ? " (tu tabla)" : ""}</span>}
-                  {ing.lookupStatus==="none" && <span className="kcal-lookup-status none">No encontrado, usa manual</span>}
-                  {!ing.lookupStatus && <span className="kcal-lookup-status none">Escribe el nombre del alimento…</span>}
+                  <span className="ing-kcal-hint">kcal por 100{ing.unidad==='ml'?'ml':'g'}</span>
                 </div>
               )}
-              <button className="remove-x" onClick={()=>removeIngredient(ing.id)} aria-label="Quitar ingrediente">×</button>
+              {!ing.lookupStatus && !manualKcalOpenFor[ing.id] && ing.kcalMode!=="manual" && (
+                <span className="ing-kcal-hint">Escribe el nombre para calcular las kcal</span>
+              )}
+            </div>
+
+            <div className="ing-card-controls">
+              <div className="ing-qty-stepper">
+                <button
+                  type="button"
+                  disabled={!ing.nombre.trim()}
+                  onClick={()=>{
+                    const newQty = Math.max(0, (parseFloat(ing.cantidad)||0) - step);
+                    const newKcal = recalcKcalTotal(ing, newQty, ing.unidad);
+                    updateIngredient(ing.id, {cantidad:newQty.toString(), kcalTotal:newKcal});
+                  }}
+                  aria-label="Menos cantidad"
+                >−</button>
+                <input
+                  type="number" min="0" step="any"
+                  value={ing.cantidad}
+                  disabled={!ing.nombre.trim()}
+                  onChange={e=>{
+                    const newQty = e.target.value;
+                    const newKcal = recalcKcalTotal(ing, newQty, ing.unidad);
+                    updateIngredient(ing.id, {cantidad:newQty, kcalTotal:newKcal});
+                  }}
+                />
+                <button
+                  type="button"
+                  disabled={!ing.nombre.trim()}
+                  onClick={()=>{
+                    const newQty = (parseFloat(ing.cantidad)||0) + step;
+                    const newKcal = recalcKcalTotal(ing, newQty, ing.unidad);
+                    updateIngredient(ing.id, {cantidad:newQty.toString(), kcalTotal:newKcal});
+                  }}
+                  aria-label="Más cantidad"
+                >+</button>
+              </div>
+              <select
+                className="ing-unidad-select"
+                value={ing.unidad}
+                onChange={e=>{
+                  const newUnidad = e.target.value;
+                  const newKcal = recalcKcalTotal(ing, ing.cantidad, newUnidad);
+                  updateIngredient(ing.id, {unidad:newUnidad, kcalTotal:newKcal});
+                }}
+              >
+                {UNIDADES.map(u=> <option key={u} value={u}>{u}</option>)}
+              </select>
+              {kcalItemTotal!==null && (
+                <span className="ing-card-kcal-total">{kcalItemTotal} kcal</span>
+              )}
             </div>
           </div>
-        ))}
+          );
+        })}
         <button className="add-ing-btn" onClick={addIngredient}>+ Añadir ingrediente</button>
+
+        {ingredientesConKcal>0 && (
+          <div className="ing-total-row">
+            <span>Total receta</span>
+            <span className="ing-total-kcal">{Math.round(calcTotalKcalBase(ingredientes))} kcal</span>
+          </div>
+        )}
 
         <div className="section-label">Preparación</div>
         {pasos.map((p,i)=>(

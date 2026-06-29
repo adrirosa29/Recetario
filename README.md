@@ -107,7 +107,11 @@ cantidad que introduzcas. Hay dos formas de obtener ese valor de partida:
 
 Mientras escribes el nombre de cualquier ingrediente, aparece un desplegable
 de sugerencias combinando tu tabla personal y la tabla local — tocando una
-sugerencia se rellena el nombre y las kcal/100g automáticamente.
+sugerencia se rellena el nombre y las kcal/100g automáticamente. La cantidad
+se ajusta con un control −/+ a tu lado, y si el ingrediente no está en
+ninguna tabla, un enlace "añadir kcal/100g" revela un campo para escribirlo
+a mano. Cada tarjeta muestra sus kcal calculadas, y al final de la lista
+verás el total de kcal de toda la receta.
 
 Si un ingrediente no está en ninguna tabla, simplemente introduce las kcal/100g
 a mano una vez y quedará disponible para siempre.
