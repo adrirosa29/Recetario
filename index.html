@@ -247,61 +247,46 @@
   .cal-day.obj-verde.past, .cal-day.obj-ambar.past, .cal-day.obj-rojo.past{ opacity:0.75; }
 
   /* ---- Estadísticas ---- */
+  .stats-row{ display:flex; gap:10px; margin-bottom:8px; }
   .stats-box{
     flex:1; background:var(--blanco-papel); border:1px solid var(--linea); border-radius:16px;
     padding:16px 10px; text-align:center;
   }
   .stats-num{ font-size:24px; font-weight:700; color:var(--terracota); line-height:1.1; }
   .stats-lbl{ font-size:10.5px; color:#8a8071; text-transform:uppercase; letter-spacing:0.3px; margin-top:6px; line-height:1.3; }
+  .stats-box.obj-verde{ background:#E3EBD9; border-color:#C5D6AE; }
+  .stats-box.obj-verde .stats-num{ color:#3b5226; }
+  .stats-box.obj-verde .stats-lbl{ color:#4d6b30; }
+  .stats-box.obj-ambar{ background:#FBEAD0; border-color:#F0CE96; }
+  .stats-box.obj-ambar .stats-num{ color:#8a5a17; }
+  .stats-box.obj-ambar .stats-lbl{ color:#9c6515; }
+  .stats-box.obj-rojo{ background:#F6DAD3; border-color:#E8AD9C; }
+  .stats-box.obj-rojo .stats-num{ color:#8a3221; }
+  .stats-box.obj-rojo .stats-lbl{ color:#9c3a26; }
 
-  .stats-today-box{
-    background:var(--blanco-papel); border:1.5px solid var(--linea); border-radius:18px;
-    padding:32px 16px; text-align:center; width:100%;
-  }
-  .stats-today-num{ font-size:44px; font-weight:700; color:var(--terracota); line-height:1.1; }
-  .stats-today-lbl{ font-size:13px; color:#8a8071; text-transform:uppercase; letter-spacing:0.4px; margin-top:8px; font-weight:700; }
-  .stats-today-msg{ font-size:13.5px; font-weight:600; margin-top:10px; }
-  .stats-today-box.obj-verde{ background:#E3EBD9; border-color:#C5D6AE; }
-  .stats-today-box.obj-verde .stats-today-num{ color:#3b5226; }
-  .stats-today-box.obj-verde .stats-today-lbl{ color:#4d6b30; }
-  .stats-today-box.obj-verde .stats-today-msg{ color:#3b5226; }
-  .stats-today-box.obj-ambar{ background:#FBEAD0; border-color:#F0CE96; }
-  .stats-today-box.obj-ambar .stats-today-num{ color:#8a5a17; }
-  .stats-today-box.obj-ambar .stats-today-lbl{ color:#9c6515; }
-  .stats-today-box.obj-ambar .stats-today-msg{ color:#8a5a17; }
-  .stats-today-box.obj-rojo{ background:#F6DAD3; border-color:#E8AD9C; }
-  .stats-today-box.obj-rojo .stats-today-num{ color:#8a3221; }
-  .stats-today-box.obj-rojo .stats-today-lbl{ color:#9c3a26; }
-  .stats-today-box.obj-rojo .stats-today-msg{ color:#8a3221; }
-
-  .stats-pager{
+  .franjas-pager{
     display:flex; overflow-x:auto; scroll-snap-type:x mandatory;
     scrollbar-width:none; width:100%; touch-action:pan-x; -webkit-overflow-scrolling:touch;
   }
-  .stats-pager::-webkit-scrollbar{ display:none; }
-  .stats-page{
+  .franjas-pager::-webkit-scrollbar{ display:none; }
+  .franjas-page{
     flex:0 0 100%; flex-shrink:0; width:100%; scroll-snap-align:start; scroll-snap-stop:always;
-    display:flex; align-items:center; box-sizing:border-box; min-width:0;
+    box-sizing:border-box; min-width:0;
   }
-  .stats-medias-row{ display:flex; gap:10px; width:100%; }
-  .stats-pager-dots{ display:flex; justify-content:center; gap:6px; margin:10px 0 8px; }
-  .stats-dot{ width:6px; height:6px; border-radius:50%; background:var(--linea); }
-  .stats-dot.active{ background:var(--oliva); width:16px; border-radius:100px; transition:width .2s ease; }
+  .franjas-pager-dots{ display:flex; justify-content:center; gap:6px; margin:10px 0 8px; }
+  .franjas-dot{ width:6px; height:6px; border-radius:50%; background:var(--linea); }
+  .franjas-dot.active{ background:var(--oliva); width:16px; border-radius:100px; transition:width .2s ease; }
 
-  .franja-stats-list{ display:flex; flex-direction:column; gap:10px; margin-bottom:8px; }
-  .franja-stats-item{
-    display:flex; align-items:center; gap:10px; background:var(--blanco-papel);
-    border:1px solid var(--linea); border-radius:14px; padding:12px 14px;
+  .franja-stats-grid{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .franja-stats-grid .franja-stats-card:last-child:nth-child(odd){ grid-column:1 / -1; }
+  .franja-stats-card{
+    background:var(--blanco-papel); border:1px solid var(--linea); border-radius:16px;
+    padding:18px 10px; text-align:center; display:flex; flex-direction:column; align-items:center; gap:4px;
   }
-  .franja-stats-icon{ font-size:16px; flex-shrink:0; width:20px; text-align:center; }
-  .franja-stats-label{ font-size:13.5px; font-weight:600; color:var(--carbon); flex:0 0 70px; flex-shrink:0; }
-  .franja-stats-bar-wrap{
-    flex:1; height:8px; background:var(--crema-osc); border-radius:100px; overflow:hidden; min-width:0;
-  }
-  .franja-stats-bar{
-    height:100%; background:var(--terracota); border-radius:100px; transition:width .3s ease;
-  }
-  .franja-stats-num{ font-size:13px; font-weight:700; color:var(--terracota); flex-shrink:0; width:64px; text-align:right; }
+  .franja-stats-card-icon{ font-size:22px; line-height:1; margin-bottom:2px; }
+  .franja-stats-card-label{ font-size:12.5px; font-weight:700; color:var(--carbon); }
+  .franja-stats-card-num{ font-size:20px; font-weight:700; color:var(--terracota); line-height:1.1; margin-top:2px; }
+  .franja-stats-card-unit{ font-size:10px; color:#8a8071; text-transform:uppercase; letter-spacing:0.3px; }
 
   .objetivo-edit-row{ display:flex; align-items:center; gap:8px; margin-bottom:8px; flex-wrap:wrap; }
   .objetivo-edit-row input{
@@ -789,7 +774,9 @@ const UNIDADES_PROPORCIONALES = ["g","kg","ml","l"]; // admiten "kcal por 100g/m
 
 const FRANJAS = [
   {id:"desayuno", label:"Desayuno", icon:"☀"},
+  {id:"almuerzo", label:"Almuerzo", icon:"🥪"},
   {id:"comida", label:"Comida", icon:"🍲"},
+  {id:"merienda", label:"Merienda", icon:"🍪"},
   {id:"cena", label:"Cena", icon:"🌙"},
   {id:"otros", label:"Otros", icon:"✦"},
 ];
@@ -904,7 +891,7 @@ function App(){
   // Normaliza un día del plan al nuevo formato de listas de {recetaId, raciones},
   // migrando formatos antiguos: id único suelto -> [{recetaId, raciones:1}]; lista de ids sueltos -> igual.
   const normalizeDiaPlan = (diaActual, fechaKey)=>{
-    const base = diaActual || { fecha: fechaKey, desayuno:[], comida:[], cena:[], otros:[] };
+    const base = diaActual || { fecha: fechaKey, desayuno:[], almuerzo:[], comida:[], merienda:[], cena:[], otros:[] };
     const normalized = { fecha: fechaKey };
     FRANJAS.forEach(f=>{
       const val = base[f.id];
@@ -1769,13 +1756,13 @@ function StatsScreen({ recetas, plan, objetivoKcal, onUpdateObjetivoKcal }){
   const recetaById = (id)=> recetas.find(r=>r.id===id);
   const [objetivoInput, setObjetivoInput] = useState(objetivoKcal ? objetivoKcal.toString() : "");
   const [editingObjetivo, setEditingObjetivo] = useState(!objetivoKcal);
-  const [pagerPage, setPagerPage] = useState(0);
-  const pagerRef = useRef(null);
-  const handlePagerScroll = ()=>{
-    const el = pagerRef.current;
+  const [franjasPage, setFranjasPage] = useState(0);
+  const franjasPagerRef = useRef(null);
+  const handleFranjasPagerScroll = ()=>{
+    const el = franjasPagerRef.current;
     if(!el) return;
     const page = Math.round(el.scrollLeft / el.clientWidth);
-    setPagerPage(page);
+    setFranjasPage(page);
   };
 
   const franjaList = (dia, franjaId)=>{
@@ -1904,53 +1891,41 @@ function StatsScreen({ recetas, plan, objetivoKcal, onUpdateObjetivoKcal }){
         )}
 
         <div className="section-label">Calorías planificadas</div>
-        <div className="stats-pager" ref={pagerRef} onScroll={handlePagerScroll}>
-          <div className="stats-page">
-            <div className={"stats-today-box"+(colorObjetivoHoy?" obj-"+colorObjetivoHoy:"")}>
-              <div className="stats-today-num">{kcalHoy || '—'}</div>
-              <div className="stats-today-lbl">Hoy</div>
-              {colorObjetivoHoy && (
-                <div className="stats-today-msg">
-                  {colorObjetivoHoy==="verde" && "Dentro del objetivo"}
-                  {colorObjetivoHoy==="ambar" && "Hasta +5% del objetivo"}
-                  {colorObjetivoHoy==="rojo" && "Por encima del objetivo"}
-                </div>
-              )}
-            </div>
+        <div className="stats-row">
+          <div className={"stats-box"+(colorObjetivoHoy?" obj-"+colorObjetivoHoy:"")}>
+            <div className="stats-num">{kcalHoy || '—'}</div>
+            <div className="stats-lbl">Hoy</div>
           </div>
-          <div className="stats-page">
-            <div className="stats-medias-row">
-              <div className="stats-box">
-                <div className="stats-num">{promedioSemanal || '—'}</div>
-                <div className="stats-lbl">Media / día<br/>esta semana</div>
-              </div>
-              <div className="stats-box">
-                <div className="stats-num">{promedioMensual || '—'}</div>
-                <div className="stats-lbl">Media / día<br/>este mes</div>
-              </div>
-            </div>
+          <div className="stats-box">
+            <div className="stats-num">{promedioSemanal || '—'}</div>
+            <div className="stats-lbl">Media / día<br/>esta semana</div>
           </div>
-        </div>
-        <div className="stats-pager-dots">
-          <span className={"stats-dot"+(pagerPage===0?" active":"")}></span>
-          <span className={"stats-dot"+(pagerPage===1?" active":"")}></span>
+          <div className="stats-box">
+            <div className="stats-num">{promedioMensual || '—'}</div>
+            <div className="stats-lbl">Media / día<br/>este mes</div>
+          </div>
         </div>
 
         <div className="section-label">Media de kcal por franja</div>
-        <div className="franja-stats-list">
-          {mediasPorFranja.map(f=>(
-            <div className="franja-stats-item" key={f.id}>
-              <span className="franja-stats-icon">{f.icon}</span>
-              <span className="franja-stats-label">{f.label}</span>
-              <div className="franja-stats-bar-wrap">
-                <div
-                  className="franja-stats-bar"
-                  style={{width: (f.media>0 ? Math.min(100, (f.media/Math.max(1,...mediasPorFranja.map(x=>x.media||1)))*100) : 0)+'%'}}
-                ></div>
+        <div className="franjas-pager" ref={franjasPagerRef} onScroll={handleFranjasPagerScroll}>
+          {[mediasPorFranja.slice(0,3), mediasPorFranja.slice(3,6)].map((grupo, pageIdx)=>(
+            <div className="franjas-page" key={pageIdx}>
+              <div className="franja-stats-grid">
+                {grupo.map(f=>(
+                  <div className="franja-stats-card" key={f.id}>
+                    <span className="franja-stats-card-icon">{f.icon}</span>
+                    <span className="franja-stats-card-label">{f.label}</span>
+                    <span className="franja-stats-card-num">{f.media>0 ? `${f.media}` : '—'}</span>
+                    {f.media>0 && <span className="franja-stats-card-unit">kcal</span>}
+                  </div>
+                ))}
               </div>
-              <span className="franja-stats-num">{f.media>0 ? `${f.media} kcal` : '—'}</span>
             </div>
           ))}
+        </div>
+        <div className="franjas-pager-dots">
+          <span className={"franjas-dot"+(franjasPage===0?" active":"")}></span>
+          <span className={"franjas-dot"+(franjasPage===1?" active":"")}></span>
         </div>
 
         {resumenObjetivo && (

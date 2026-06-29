@@ -130,7 +130,7 @@ a mano una vez y quedará disponible para siempre.
 
 En la pestaña "Calendario" puedes planificar tus comidas en una vista mensual:
 
-- Cada día tiene 4 franjas: Desayuno, Comida, Cena y Otros (meriendas, snacks…).
+- Cada día tiene 6 franjas: Desayuno, Almuerzo, Comida, Merienda, Cena y Otros.
 - Toca un día para abrir el panel y asignar recetas a cada franja — puedes
   añadir **varias cosas a la misma franja** (por ejemplo, albóndigas en salsa
   y un yogur en la misma comida).
@@ -166,16 +166,13 @@ En la pestaña "Calendario" puedes planificar tus comidas en una vista mensual:
 
 En la pestaña "Estadísticas" puedes ver:
 
-- Las kcal planificadas para hoy, en una tarjeta a pantalla completa que se
-  tiñe del mismo color que el calendario (verde/ámbar/rojo) según tu
-  objetivo. Deslizando el dedo hacia la izquierda pasas a una segunda
-  pantalla con la media diaria de la semana actual y del mes actual juntas,
-  con un punto indicador abajo para ver en qué pantalla estás.
-- La media diaria de kcal de la semana actual y del mes actual (calculada
-  solo sobre los días que tengan algo planificado).
-- La **media de kcal por franja** (Desayuno/Comida/Cena/Otros), con una barra
-  visual proporcional, para ver de un vistazo si sueles comer más fuerte en
-  el desayuno, la comida o la cena.
+- Las kcal planificadas para hoy, en una tarjeta que se tiñe del mismo color
+  que el calendario (verde/ámbar/rojo) según tu objetivo, junto con la media
+  diaria de la semana actual y del mes actual (calculada solo sobre los días
+  que tengan algo planificado).
+- La **media de kcal por franja** (Desayuno, Almuerzo, Comida, Merienda,
+  Cena, Otros), en tarjetas que puedes deslizar hacia la izquierda para ver
+  las 6, con un punto indicador abajo para ver en qué página estás.
 - Un **objetivo de kcal diario** que tú defines, editable en cualquier
   momento desde "Editar". Una vez definido, el calendario tiñe el fondo de
   cada día planificado según cómo te quedaste ese día: **verde** si no
