@@ -80,6 +80,37 @@
   .search-icon{ position:absolute; left:14px; top:50%; transform:translateY(-50%); opacity:0.5; font-size:15px; }
 
   .filters{ display:flex; gap:8px; overflow-x:auto; margin-bottom:20px; padding-bottom:4px; scrollbar-width:none; }
+
+  /* ---- Pantalla de selección de categoría ---- */
+  .back-btn{
+    width:32px; height:32px; border-radius:50%; border:1.5px solid var(--linea); background:var(--blanco-papel);
+    color:var(--oliva); font-size:17px; display:flex; align-items:center; justify-content:center;
+    cursor:pointer; margin-right:2px; flex-shrink:0;
+  }
+  .cat-grid{
+    display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:8px;
+  }
+  .cat-card{
+    aspect-ratio:1; border-radius:20px; cursor:pointer; position:relative; overflow:hidden;
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px;
+    border:1px solid var(--linea); transition:transform .15s ease;
+  }
+  .cat-card:active{ transform:scale(0.96); }
+  .cat-card-icon{ font-size:36px; line-height:1; }
+  .cat-card-label{ font-size:16px; font-weight:700; font-family:'fallback-serif',serif; }
+  .cat-card-count{ font-size:11.5px; opacity:0.65; font-weight:600; }
+
+  .cat-desayuno{ background:linear-gradient(150deg, #FCEFCB, #F7DFA0); color:#8a6a1a; }
+  .cat-comida{ background:linear-gradient(150deg, #E6ECDC, #CBDAB4); color:#46562f; }
+  .cat-cena{ background:linear-gradient(150deg, #DDE3EC, #B9C5DB); color:#33415c; }
+  .cat-postre{ background:linear-gradient(150deg, #F6DDE3, #EFC0CB); color:#8a3a4d; }
+  .cat-snack{ background:linear-gradient(150deg, #EFE3D6, #DCC7AC); color:#6b4d2c; }
+  .cat-bebida{ background:linear-gradient(150deg, #DCEAE8, #B7D6D1); color:#2d5650; }
+
+  .ver-todas-btn{
+    width:100%; padding:13px; border-radius:14px; border:1.5px dashed var(--linea); background:transparent;
+    color:var(--oliva); font-size:14px; font-weight:600; cursor:pointer; margin-top:16px;
+  }
   .filters::-webkit-scrollbar{display:none;}
   .chip{
     flex-shrink:0; padding:7px 14px; border-radius:100px; font-size:13px;
@@ -682,7 +713,7 @@ function App(){
   const [tab, setTab] = useState("recetario"); // recetario | calendario
   const [view, setView] = useState({ screen:"list" }); // list | detail | form
   const [search, setSearch] = useState("");
-  const [filtro, setFiltro] = useState("todas");
+  const [filtro, setFiltro] = useState(null); // null = pantalla de categorías; "todas" o id de categoría = lista filtrada
   const [toast, setToast] = useState("");
   const toastTimer = useRef(null);
 
@@ -846,6 +877,9 @@ function App(){
         <React.Fragment>
           <div className="topbar">
             <div className="brand">
+              {filtro!==null && (
+                <button className="back-btn" onClick={()=>{ setFiltro(null); setSearch(""); }} aria-label="Volver a categorías">‹</button>
+              )}
               <div className="stamp">R</div>
               <h1 className="serif">Mi Recetario</h1>
             </div>
@@ -857,52 +891,75 @@ function App(){
               <input
                 placeholder="Buscar receta o ingrediente…"
                 value={search}
-                onChange={e=>setSearch(e.target.value)}
+                onChange={e=>{
+                  setSearch(e.target.value);
+                  if(e.target.value.trim() && filtro===null) setFiltro("todas");
+                }}
               />
             </div>
 
-            <div className="filters">
-              <button className={"chip"+(filtro==="todas"?" active":"")} onClick={()=>setFiltro("todas")}>Todas</button>
-              {CATEGORIAS.map(c=>(
-                <button key={c.id} className={"chip"+(filtro===c.id?" active":"")} onClick={()=>setFiltro(c.id)}>
-                  {c.icon} {c.label}
-                </button>
-              ))}
-            </div>
-
-            {filtered.length===0 ? (
-              <div className="empty">
-                <div className="stamp serif">R</div>
-                <h3>{recetas.length===0 ? "Tu recetario está vacío" : "No hay coincidencias"}</h3>
-                <p>{recetas.length===0 ? "Toca el botón + para añadir tu primera receta." : "Prueba con otra búsqueda o categoría."}</p>
-              </div>
-            ) : (
-              <div className="card-list">
-                {filtered.map(r=>{
-                  const servingsBase = r.porciones || 1;
-                  const totalKcal = calcTotalKcalBase(r.ingredientes||[]);
-                  const kcalPerServing = servingsBase ? Math.round(totalKcal/servingsBase) : 0;
-                  return (
-                    <div key={r.id} className="recipe-card" onClick={()=>setView({screen:"detail", id:r.id})}>
-                      {r.destacada && <span className="tab">Favorita</span>}
-                      <div className="stamp-sm">{catIcon(r.categoria)}</div>
-                      <div className="info">
-                        <h3>{r.titulo}</h3>
-                        <div className="meta-row">
-                          <span>⏱ {r.tiempo || '—'} min</span>
-                          <span>◷ {servingsBase} porc.</span>
-                          <span>{catLabel(r.categoria)}</span>
-                        </div>
+            {filtro===null ? (
+              <React.Fragment>
+                <div className="cat-grid">
+                  {CATEGORIAS.map(c=>{
+                    const count = recetas.filter(r=>r.categoria===c.id).length;
+                    return (
+                      <div key={c.id} className={"cat-card cat-"+c.id} onClick={()=>setFiltro(c.id)}>
+                        <span className="cat-card-icon">{c.icon}</span>
+                        <span className="cat-card-label">{c.label}</span>
+                        <span className="cat-card-count">{count} {count===1?'receta':'recetas'}</span>
                       </div>
-                      {kcalPerServing>0 && <div className="kcal-badge">{kcalPerServing} kcal</div>}
-                    </div>
-                  );
-                })}
-              </div>
+                    );
+                  })}
+                </div>
+                <button className="ver-todas-btn" onClick={()=>setFiltro("todas")}>Ver todas las recetas</button>
+              </React.Fragment>
+            ) : (
+              <React.Fragment>
+                <div className="filters">
+                  <button className={"chip"+(filtro==="todas"?" active":"")} onClick={()=>setFiltro("todas")}>Todas</button>
+                  {CATEGORIAS.map(c=>(
+                    <button key={c.id} className={"chip"+(filtro===c.id?" active":"")} onClick={()=>setFiltro(c.id)}>
+                      {c.icon} {c.label}
+                    </button>
+                  ))}
+                </div>
+
+                {filtered.length===0 ? (
+                  <div className="empty">
+                    <div className="stamp serif">R</div>
+                    <h3>{recetas.length===0 ? "Tu recetario está vacío" : "No hay coincidencias"}</h3>
+                    <p>{recetas.length===0 ? "Toca el botón + para añadir tu primera receta." : "Prueba con otra búsqueda o categoría."}</p>
+                  </div>
+                ) : (
+                  <div className="card-list">
+                    {filtered.map(r=>{
+                      const servingsBase = r.porciones || 1;
+                      const totalKcal = calcTotalKcalBase(r.ingredientes||[]);
+                      const kcalPerServing = servingsBase ? Math.round(totalKcal/servingsBase) : 0;
+                      return (
+                        <div key={r.id} className="recipe-card" onClick={()=>setView({screen:"detail", id:r.id})}>
+                          {r.destacada && <span className="tab">Favorita</span>}
+                          <div className="stamp-sm">{catIcon(r.categoria)}</div>
+                          <div className="info">
+                            <h3>{r.titulo}</h3>
+                            <div className="meta-row">
+                              <span>⏱ {r.tiempo || '—'} min</span>
+                              <span>◷ {servingsBase} porc.</span>
+                              <span>{catLabel(r.categoria)}</span>
+                            </div>
+                          </div>
+                          {kcalPerServing>0 && <div className="kcal-badge">{kcalPerServing} kcal</div>}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </React.Fragment>
             )}
           </main>
 
-          <button className="fab" onClick={()=>setView({screen:"form", id:null, categoriaInicial: filtro!=="todas" ? filtro : "comida"})} aria-label="Añadir receta">+</button>
+          <button className="fab" onClick={()=>setView({screen:"form", id:null, categoriaInicial: (filtro && filtro!=="todas") ? filtro : "comida"})} aria-label="Añadir receta">+</button>
         </React.Fragment>
       )}
 

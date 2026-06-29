@@ -78,6 +78,17 @@ archivos a mano):
    app para que funcione offline, así que a veces tarda un poco en notar que
    hay cambios).
 
+## Mi Recetario
+
+Al abrir la pestaña Recetario, primero ves una cuadrícula con las 6
+categorías (Desayuno, Comida, Cena, Postre, Snack, Bebida), cada una con su
+propio color y el número de recetas que tienes guardadas en ella. Tocando una
+categoría entras a la lista de esas recetas, con un botón "‹" para volver a
+las categorías. Si prefieres ver todas mezcladas, hay un botón "Ver todas las
+recetas" debajo de la cuadrícula — y si escribes directamente en el buscador
+desde la pantalla de categorías, te lleva igualmente a los resultados sin
+tener que elegir ninguna categoría primero.
+
 ## Sobre las calorías
 
 La app calcula las calorías de cada ingrediente a partir de las **kcal por
