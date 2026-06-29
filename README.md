@@ -116,6 +116,13 @@ pulsar "editar" junto al valor encontrado para corregirlo a mano en cualquier
 momento. Cada tarjeta muestra sus kcal calculadas, y al final de la lista
 verás el total de kcal de toda la receta.
 
+Para ingredientes que se miden en gramos o mililitros (incluyendo kg y l),
+el campo manual pide "kcal por 100g/ml" y calcula el total con una regla de
+tres. Para ingredientes que se miden por unidad (ud, cda, cdta, taza, pizca,
+al gusto) — donde no tiene sentido hablar de "por 100 unidades" — el campo
+manual pide directamente las kcal totales para la cantidad puesta (por
+ejemplo, "1 taza de café con leche = 50 kcal").
+
 Si un ingrediente no está en ninguna tabla, simplemente introduce las kcal/100g
 a mano una vez y quedará disponible para siempre.
 

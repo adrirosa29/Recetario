@@ -752,6 +752,7 @@ const catIcon = (id)=> (CATEGORIAS.find(c=>c.id===id)||{}).icon || "❋";
 const catLabel = (id)=> (CATEGORIAS.find(c=>c.id===id)||{}).label || "Receta";
 
 const UNIDADES = ["g","kg","ml","l","ud","cda","cdta","taza","pizca","al gusto"];
+const UNIDADES_PROPORCIONALES = ["g","kg","ml","l"]; // admiten "kcal por 100g/ml"; el resto van por kcal totales directas
 
 const FRANJAS = [
   {id:"desayuno", label:"Desayuno", icon:"☀"},
@@ -1924,8 +1925,9 @@ function calcKcalTotalFromBase(kcal100, cantidad, unidad){
   const base = parseFloat(kcal100);
   const qty = parseFloat(cantidad);
   if(isNaN(base) || isNaN(qty) || qty<=0) return "";
-  if(unidad!=="g" && unidad!=="ml") return ""; // otras unidades no son convertibles por 100
-  return round1((base/100) * qty).toString();
+  if(!UNIDADES_PROPORCIONALES.includes(unidad)) return ""; // no convertible por 100, ver kcal directa
+  const factor = (unidad==="kg" || unidad==="l") ? 1000 : 1; // kg/l equivalen a 1000 veces la base de 100g/100ml
+  return round1((base/100) * qty * factor).toString();
 }
 
 function FormScreen({ recipe, categoriaInicial, onClose, onSave, alimentosPersonales, onSaveAlimentoPersonal }){
@@ -1960,7 +1962,10 @@ function FormScreen({ recipe, categoriaInicial, onClose, onSave, alimentosPerson
     setIngredientes(prev=>prev.map(ing=> ing.id===id ? {...ing, ...patch} : ing));
   };
   const removeIngredient = (id)=>{
-    setIngredientes(prev=> prev.length>1 ? prev.filter(ing=>ing.id!==id) : prev);
+    setIngredientes(prev=>{
+      const next = prev.filter(ing=>ing.id!==id);
+      return next.length>0 ? next : [emptyIngredient()];
+    });
   };
   const addIngredient = ()=>{
     const nuevo = emptyIngredient();
@@ -2006,9 +2011,15 @@ function FormScreen({ recipe, categoriaInicial, onClose, onSave, alimentosPerson
     updateIngredient(ing.id, { kcal100: newKcal100, kcalTotal, kcalMode:"manual" });
   };
 
+  // para unidades no proporcionales (ud, taza, cda...): el usuario escribe directamente las kcal totales
+  const handleManualKcalDirectaChange = (ing, newKcalTotal)=>{
+    updateIngredient(ing.id, { kcalTotal: newKcalTotal, kcal100:"", kcalMode:"manual" });
+  };
+
   // al salir del campo de kcal100 manual, guarda el alimento en la tabla personal para no repetirlo
+  // (solo si es una unidad proporcional, ya que ahí sí existe un valor real de "por 100g/ml")
   const handleManualKcal100Blur = (ing)=>{
-    if(ing.nombre.trim() && ing.kcal100 && !isNaN(parseFloat(ing.kcal100))){
+    if(UNIDADES_PROPORCIONALES.includes(ing.unidad) && ing.nombre.trim() && ing.kcal100 && !isNaN(parseFloat(ing.kcal100))){
       onSaveAlimentoPersonal(ing.nombre.trim(), ing.kcal100);
     }
   };
@@ -2147,8 +2158,11 @@ function FormScreen({ recipe, categoriaInicial, onClose, onSave, alimentosPerson
               {ing.lookupStatus==="searching" && <span className="ing-kcal-hint">Buscando…</span>}
               {ing.lookupStatus==="found" && ing.kcalMode==="auto" && !manualKcalOpenFor[ing.id] && (
                 <span className="ing-kcal-hint">
-                  <span className="ing-kcal-chip found">✓ {ing.kcal100} kcal/100{ing.unidad==='ml'?'ml':'g'}{ing.origen==="personal" ? " · tu tabla" : ""}</span>
+                  <span className="ing-kcal-chip found">✓ {ing.kcal100} kcal/100{ing.unidad==='ml'||ing.unidad==='l'?'ml':'g'}{ing.origen==="personal" ? " · tu tabla" : ""}</span>
                   {' '}<button type="button" className="ing-kcal-link" onClick={()=>setManualKcalOpenFor(prev=>({...prev,[ing.id]:true}))}>editar</button>
+                  {!UNIDADES_PROPORCIONALES.includes(ing.unidad) && (
+                    <span className="ing-kcal-hint" style={{display:'block', marginTop:4}}>Esta unidad no permite calcular el total solo; pulsa "editar" para poner las kcal directamente.</span>
+                  )}
                 </span>
               )}
               {ing.lookupStatus==="none" && !manualKcalOpenFor[ing.id] && ing.kcalMode!=="manual" && (
@@ -2158,18 +2172,32 @@ function FormScreen({ recipe, categoriaInicial, onClose, onSave, alimentosPerson
                 </span>
               )}
               {(ing.kcalMode==="manual" || manualKcalOpenFor[ing.id]) && (
-                <div className="ing-kcal-manual-row">
-                  <input
-                    placeholder="Kcal/100g"
-                    type="number" min="0" step="any"
-                    className="ing-kcal-manual-input"
-                    value={ing.kcal100}
-                    autoFocus
-                    onChange={e=>handleManualKcal100Change(ing, e.target.value)}
-                    onBlur={()=>handleManualKcal100Blur(ing)}
-                  />
-                  <span className="ing-kcal-hint">kcal por 100{ing.unidad==='ml'?'ml':'g'}</span>
-                </div>
+                UNIDADES_PROPORCIONALES.includes(ing.unidad) ? (
+                  <div className="ing-kcal-manual-row">
+                    <input
+                      placeholder="Kcal/100g"
+                      type="number" min="0" step="any"
+                      className="ing-kcal-manual-input"
+                      value={ing.kcal100}
+                      autoFocus
+                      onChange={e=>handleManualKcal100Change(ing, e.target.value)}
+                      onBlur={()=>handleManualKcal100Blur(ing)}
+                    />
+                    <span className="ing-kcal-hint">kcal por 100{ing.unidad==='ml'||ing.unidad==='l'?'ml':'g'}</span>
+                  </div>
+                ) : (
+                  <div className="ing-kcal-manual-row">
+                    <input
+                      placeholder="Kcal totales"
+                      type="number" min="0" step="any"
+                      className="ing-kcal-manual-input"
+                      value={ing.kcalTotal}
+                      autoFocus
+                      onChange={e=>handleManualKcalDirectaChange(ing, e.target.value)}
+                    />
+                    <span className="ing-kcal-hint">kcal para {ing.cantidad||'?'} {ing.unidad}</span>
+                  </div>
+                )
               )}
               {!ing.lookupStatus && !manualKcalOpenFor[ing.id] && ing.kcalMode!=="manual" && (
                 <span className="ing-kcal-hint">Escribe el nombre para calcular las kcal</span>
@@ -2214,8 +2242,16 @@ function FormScreen({ recipe, categoriaInicial, onClose, onSave, alimentosPerson
                 value={ing.unidad}
                 onChange={e=>{
                   const newUnidad = e.target.value;
-                  const newKcal = recalcKcalTotal(ing, ing.cantidad, newUnidad);
-                  updateIngredient(ing.id, {unidad:newUnidad, kcalTotal:newKcal});
+                  const eraProp = UNIDADES_PROPORCIONALES.includes(ing.unidad);
+                  const esProp = UNIDADES_PROPORCIONALES.includes(newUnidad);
+                  if(esProp){
+                    // pasa a proporcional: recalcula desde kcal100 si lo hay, o queda vacío
+                    const newKcal = recalcKcalTotal(ing, ing.cantidad, newUnidad);
+                    updateIngredient(ing.id, {unidad:newUnidad, kcalTotal:newKcal});
+                  } else {
+                    // pasa a directo (ud, taza, cda...): conserva el total actual como punto de partida editable
+                    updateIngredient(ing.id, {unidad:newUnidad, kcal100:"", kcalMode: ing.lookupStatus==="found" ? "manual" : ing.kcalMode});
+                  }
                 }}
               >
                 {UNIDADES.map(u=> <option key={u} value={u}>{u}</option>)}
