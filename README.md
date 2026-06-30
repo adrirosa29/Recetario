@@ -158,7 +158,10 @@ En la pestaña "Calendario" puedes planificar tus comidas en una vista mensual:
   otro día.
 - El calendario muestra las kcal totales planificadas para cada día con datos.
 - Los días que ya han pasado se muestran con un tono más apagado para
-  diferenciarlos claramente de los días futuros.
+  diferenciarlos claramente de los días futuros — pero si tienes objetivo de
+  kcal definido y ese día tenía algo planificado, sigue viéndose claramente
+  de qué color es (verde/ámbar/rojo), solo que en una versión algo más
+  apagada del mismo color.
 - Puedes navegar a meses anteriores o futuros con las flechas, o volver al mes
   actual con "Ir a hoy".
 
@@ -180,8 +183,10 @@ En la pestaña "Estadísticas" puedes ver:
   superaste el objetivo, **ámbar/naranja** si lo superaste hasta un 5%, y
   **rojo** si lo superaste más de un 5%. Los días sin nada planificado, o
   si no has definido objetivo, se quedan sin teñir.
-- Un resumen de **cumplimiento del objetivo**: el porcentaje de tus días
-  planificados que cayeron en cada uno de esos tres colores.
+- Justo debajo del objetivo, un resumen compacto de **cumplimiento**: el
+  porcentaje y el número de días que cayeron en cada uno de los tres
+  colores, con un desplegable para elegir el periodo — última semana,
+  último mes, o últimos 90 días.
 
 ## Sobre la IA para estimar calorías
 

@@ -244,7 +244,17 @@
   .cal-day.obj-rojo{ background:#F6DAD3; border-color:#E8AD9C; }
   .cal-day.obj-rojo .daynum{ color:#8a3221; }
   .cal-day.obj-rojo .daykcal{ color:#9c3a26; }
-  .cal-day.obj-verde.past, .cal-day.obj-ambar.past, .cal-day.obj-rojo.past{ opacity:0.75; }
+
+  /* días pasados CON color de objetivo: versión algo más apagada de cada color, pero siempre identificable */
+  .cal-day.obj-verde.past:not(.other-month){ background:#D6E0C7; border-color:#B5C99C; }
+  .cal-day.obj-verde.past:not(.other-month) .daynum{ color:#4d6b30; }
+  .cal-day.obj-verde.past:not(.other-month) .daykcal{ color:#5d7a3c; }
+  .cal-day.obj-ambar.past:not(.other-month){ background:#F0DDB8; border-color:#E2BC7F; }
+  .cal-day.obj-ambar.past:not(.other-month) .daynum{ color:#8a5a17; }
+  .cal-day.obj-ambar.past:not(.other-month) .daykcal{ color:#9c6515; }
+  .cal-day.obj-rojo.past:not(.other-month){ background:#EAC2B5; border-color:#D99584; }
+  .cal-day.obj-rojo.past:not(.other-month) .daynum{ color:#8a3221; }
+  .cal-day.obj-rojo.past:not(.other-month) .daykcal{ color:#9c3a26; }
 
   /* ---- Estadísticas ---- */
   .stats-row{ display:flex; gap:10px; margin-bottom:8px; }
@@ -310,19 +320,28 @@
   }
   .objetivo-display-num{ font-size:17px; font-weight:700; color:var(--carbon); }
 
-  .objetivo-pct-row{ display:flex; gap:10px; margin-bottom:8px; }
-  .objetivo-pct-box{ flex:1; border-radius:14px; padding:14px 8px; text-align:center; }
-  .objetivo-pct-num{ font-size:20px; font-weight:700; }
-  .objetivo-pct-lbl{ font-size:10px; margin-top:4px; line-height:1.3; font-weight:600; }
+  .cumplimiento-compact{ margin-bottom:18px; }
+  .cumplimiento-compact-header{
+    display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;
+  }
+  .cumplimiento-compact-title{ font-size:12.5px; font-weight:700; text-transform:uppercase; letter-spacing:0.4px; color:#7a7163; }
+  .cumplimiento-periodo-select{
+    font-size:12px; padding:5px 8px; border-radius:9px; border:1px solid var(--linea);
+    background:var(--blanco-papel); color:var(--carbon);
+  }
+  .objetivo-pct-row-compact{ display:flex; gap:8px; }
+  .objetivo-pct-box-compact{ flex:1; border-radius:12px; padding:9px 6px; text-align:center; }
+  .objetivo-pct-num-compact{ font-size:15px; font-weight:700; }
+  .objetivo-pct-dias-compact{ font-size:9.5px; margin-top:1px; font-weight:600; opacity:0.85; }
   .objetivo-pct-verde{ background:#E3EBD9; }
-  .objetivo-pct-verde .objetivo-pct-num{ color:#3b5226; }
-  .objetivo-pct-verde .objetivo-pct-lbl{ color:#4d6b30; }
+  .objetivo-pct-verde .objetivo-pct-num-compact{ color:#3b5226; }
+  .objetivo-pct-verde .objetivo-pct-dias-compact{ color:#4d6b30; }
   .objetivo-pct-ambar{ background:#FBEAD0; }
-  .objetivo-pct-ambar .objetivo-pct-num{ color:#8a5a17; }
-  .objetivo-pct-ambar .objetivo-pct-lbl{ color:#9c6515; }
+  .objetivo-pct-ambar .objetivo-pct-num-compact{ color:#8a5a17; }
+  .objetivo-pct-ambar .objetivo-pct-dias-compact{ color:#9c6515; }
   .objetivo-pct-rojo{ background:#F6DAD3; }
-  .objetivo-pct-rojo .objetivo-pct-num{ color:#8a3221; }
-  .objetivo-pct-rojo .objetivo-pct-lbl{ color:#9c3a26; }
+  .objetivo-pct-rojo .objetivo-pct-num-compact{ color:#8a3221; }
+  .objetivo-pct-rojo .objetivo-pct-dias-compact{ color:#9c3a26; }
 
   /* ---- panel de día (slide-up) ---- */
   .day-panel-overlay{
@@ -1844,22 +1863,30 @@ function StatsScreen({ recetas, plan, objetivoKcal, onUpdateObjetivoKcal }){
     return { ...f, valor: Math.round(total/diasConDatosMes.length) };
   });
 
-  // --- % de días en verde / ámbar / rojo respecto al objetivo, sobre todo el historial planificado ---
-  const diasConPlan = Object.keys(plan).filter(key => elementosDelDia(key)>0);
+  // --- % de días en verde / ámbar / rojo respecto al objetivo, según el periodo elegido ---
+  const [periodoCumplimiento, setPeriodoCumplimiento] = useState("semana"); // semana | mes | 90dias
+  const diasEnPeriodo = (()=>{
+    const dias = periodoCumplimiento==="semana" ? 7 : periodoCumplimiento==="mes" ? 30 : 90;
+    return Array.from({length:dias}, (_,i)=>{
+      const d = new Date(today); d.setDate(today.getDate()-i);
+      return fechaToKey(d);
+    });
+  })();
+  const diasConPlanPeriodo = diasEnPeriodo.filter(key => elementosDelDia(key)>0);
   let resumenObjetivo = null;
-  if(objetivoKcal && diasConPlan.length>0){
+  if(objetivoKcal && diasConPlanPeriodo.length>0){
     let verde=0, ambar=0, rojo=0;
-    diasConPlan.forEach(key=>{
+    diasConPlanPeriodo.forEach(key=>{
       const kcal = kcalDelDia(key);
       if(kcal <= objetivoKcal) verde++;
       else if(kcal <= objetivoKcal*1.05) ambar++;
       else rojo++;
     });
-    const total = diasConPlan.length;
+    const total = diasConPlanPeriodo.length;
     resumenObjetivo = {
-      verde: Math.round((verde/total)*100),
-      ambar: Math.round((ambar/total)*100),
-      rojo: Math.round((rojo/total)*100),
+      verde: Math.round((verde/total)*100), verdeDias: verde,
+      ambar: Math.round((ambar/total)*100), ambarDias: ambar,
+      rojo: Math.round((rojo/total)*100), rojoDias: rojo,
       totalDias: total,
     };
   }
@@ -1898,6 +1925,37 @@ function StatsScreen({ recetas, plan, objetivoKcal, onUpdateObjetivoKcal }){
           <div className="objetivo-display-row">
             <span className="objetivo-display-num">{objetivoKcal} kcal/día</span>
             <button className="link-btn" onClick={()=>{ setObjetivoInput(objetivoKcal.toString()); setEditingObjetivo(true); }}>Editar</button>
+          </div>
+        )}
+
+        {resumenObjetivo && (
+          <div className="cumplimiento-compact">
+            <div className="cumplimiento-compact-header">
+              <span className="cumplimiento-compact-title">Cumplimiento</span>
+              <select
+                className="cumplimiento-periodo-select"
+                value={periodoCumplimiento}
+                onChange={e=>setPeriodoCumplimiento(e.target.value)}
+              >
+                <option value="semana">Última semana</option>
+                <option value="mes">Último mes</option>
+                <option value="90dias">Últimos 90 días</option>
+              </select>
+            </div>
+            <div className="objetivo-pct-row-compact">
+              <div className="objetivo-pct-box-compact objetivo-pct-verde">
+                <div className="objetivo-pct-num-compact">{resumenObjetivo.verde}%</div>
+                <div className="objetivo-pct-dias-compact">{resumenObjetivo.verdeDias} {resumenObjetivo.verdeDias===1?'día':'días'}</div>
+              </div>
+              <div className="objetivo-pct-box-compact objetivo-pct-ambar">
+                <div className="objetivo-pct-num-compact">{resumenObjetivo.ambar}%</div>
+                <div className="objetivo-pct-dias-compact">{resumenObjetivo.ambarDias} {resumenObjetivo.ambarDias===1?'día':'días'}</div>
+              </div>
+              <div className="objetivo-pct-box-compact objetivo-pct-rojo">
+                <div className="objetivo-pct-num-compact">{resumenObjetivo.rojo}%</div>
+                <div className="objetivo-pct-dias-compact">{resumenObjetivo.rojoDias} {resumenObjetivo.rojoDias===1?'día':'días'}</div>
+              </div>
+            </div>
           </div>
         )}
 
@@ -1958,29 +2016,6 @@ function StatsScreen({ recetas, plan, objetivoKcal, onUpdateObjetivoKcal }){
           <span className={"franjas-dot"+(franjasPage===0?" active":"")}></span>
           <span className={"franjas-dot"+(franjasPage===1?" active":"")}></span>
         </div>
-
-        {resumenObjetivo && (
-          <React.Fragment>
-            <div className="section-label">Cumplimiento del objetivo</div>
-            <p className="quick-extra-hint" style={{marginTop:-8, marginBottom:14}}>
-              Sobre {resumenObjetivo.totalDias} {resumenObjetivo.totalDias===1?'día':'días'} planificados.
-            </p>
-            <div className="objetivo-pct-row">
-              <div className="objetivo-pct-box objetivo-pct-verde">
-                <div className="objetivo-pct-num">{resumenObjetivo.verde}%</div>
-                <div className="objetivo-pct-lbl">Dentro del objetivo</div>
-              </div>
-              <div className="objetivo-pct-box objetivo-pct-ambar">
-                <div className="objetivo-pct-num">{resumenObjetivo.ambar}%</div>
-                <div className="objetivo-pct-lbl">Hasta +5%</div>
-              </div>
-              <div className="objetivo-pct-box objetivo-pct-rojo">
-                <div className="objetivo-pct-num">{resumenObjetivo.rojo}%</div>
-                <div className="objetivo-pct-lbl">Por encima</div>
-              </div>
-            </div>
-          </React.Fragment>
-        )}
       </main>
     </React.Fragment>
   );
