@@ -170,9 +170,10 @@ En la pestaña "Estadísticas" puedes ver:
   que el calendario (verde/ámbar/rojo) según tu objetivo, junto con la media
   diaria de la semana actual y del mes actual (calculada solo sobre los días
   que tengan algo planificado).
-- La **media de kcal por franja** (Desayuno, Almuerzo, Comida, Merienda,
-  Cena, Otros), en tarjetas que puedes deslizar hacia la izquierda para ver
-  las 6, con un punto indicador abajo para ver en qué página estás.
+- Las kcal de hoy por franja (Desayuno, Almuerzo, Comida, Merienda, Cena,
+  Otros), en una lista con barras proporcionales — deslizando hacia la
+  izquierda, esa misma lista pasa a mostrar la **media del mes** por cada
+  franja, con un punto indicador abajo para ver en qué página estás.
 - Un **objetivo de kcal diario** que tú defines, editable en cualquier
   momento desde "Editar". Una vez definido, el calendario tiñe el fondo de
   cada día planificado según cómo te quedaste ese día: **verde** si no

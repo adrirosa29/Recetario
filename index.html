@@ -277,16 +277,20 @@
   .franjas-dot{ width:6px; height:6px; border-radius:50%; background:var(--linea); }
   .franjas-dot.active{ background:var(--oliva); width:16px; border-radius:100px; transition:width .2s ease; }
 
-  .franja-stats-grid{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
-  .franja-stats-grid .franja-stats-card:last-child:nth-child(odd){ grid-column:1 / -1; }
-  .franja-stats-card{
-    background:var(--blanco-papel); border:1px solid var(--linea); border-radius:16px;
-    padding:18px 10px; text-align:center; display:flex; flex-direction:column; align-items:center; gap:4px;
+  .franja-stats-list{ display:flex; flex-direction:column; gap:10px; }
+  .franja-stats-item{
+    display:flex; align-items:center; gap:10px; background:var(--blanco-papel);
+    border:1px solid var(--linea); border-radius:14px; padding:12px 14px;
   }
-  .franja-stats-card-icon{ font-size:22px; line-height:1; margin-bottom:2px; }
-  .franja-stats-card-label{ font-size:12.5px; font-weight:700; color:var(--carbon); }
-  .franja-stats-card-num{ font-size:20px; font-weight:700; color:var(--terracota); line-height:1.1; margin-top:2px; }
-  .franja-stats-card-unit{ font-size:10px; color:#8a8071; text-transform:uppercase; letter-spacing:0.3px; }
+  .franja-stats-icon{ font-size:16px; flex-shrink:0; width:20px; text-align:center; }
+  .franja-stats-label{ font-size:13.5px; font-weight:600; color:var(--carbon); flex:0 0 70px; flex-shrink:0; }
+  .franja-stats-bar-wrap{
+    flex:1; height:8px; background:var(--crema-osc); border-radius:100px; overflow:hidden; min-width:0;
+  }
+  .franja-stats-bar{
+    height:100%; background:var(--terracota); border-radius:100px; transition:width .3s ease;
+  }
+  .franja-stats-num{ font-size:13px; font-weight:700; color:var(--terracota); flex-shrink:0; width:64px; text-align:right; }
 
   .objetivo-edit-row{ display:flex; align-items:center; gap:8px; margin-bottom:8px; flex-wrap:wrap; }
   .objetivo-edit-row input{
@@ -1822,15 +1826,22 @@ function StatsScreen({ recetas, plan, objetivoKcal, onUpdateObjetivoKcal }){
   const mesKeys = Array.from({length:diasEnMesActual}, (_,i)=> fechaToKey(new Date(today.getFullYear(), today.getMonth(), i+1)));
   const promedioMensual = calcPromedio(mesKeys);
 
-  // --- media de kcal por franja (Desayuno/Comida/Cena/Otros), sobre todo el historial del plan ---
+  // --- kcal de HOY por franja (para la página 1 del carrusel) ---
   const kcalPorFranjaEnDia = (dia, franjaId)=>{
     return franjaList(dia, franjaId).reduce((sum,item)=> sum + kcalDeItem(item), 0);
   };
+  const diaHoy = plan[todayKey];
+  const kcalHoyPorFranja = FRANJAS.map(f=>({
+    ...f,
+    valor: diaHoy ? Math.round(kcalPorFranjaEnDia(diaHoy, f.id)) : 0,
+  }));
+
+  // --- media de kcal por franja del MES ACTUAL (para la página 2 del carrusel) ---
   const mediasPorFranja = FRANJAS.map(f=>{
-    const diasConDatos = Object.values(plan).filter(dia => franjaList(dia, f.id).length>0);
-    if(diasConDatos.length===0) return { ...f, media:0 };
-    const total = diasConDatos.reduce((sum,dia)=> sum + kcalPorFranjaEnDia(dia, f.id), 0);
-    return { ...f, media: Math.round(total/diasConDatos.length) };
+    const diasConDatosMes = mesKeys.filter(key => franjaList(plan[key], f.id).length>0);
+    if(diasConDatosMes.length===0) return { ...f, valor:0 };
+    const total = diasConDatosMes.reduce((sum,key)=> sum + kcalPorFranjaEnDia(plan[key], f.id), 0);
+    return { ...f, valor: Math.round(total/diasConDatosMes.length) };
   });
 
   // --- % de días en verde / ámbar / rojo respecto al objetivo, sobre todo el historial planificado ---
@@ -1906,22 +1917,42 @@ function StatsScreen({ recetas, plan, objetivoKcal, onUpdateObjetivoKcal }){
           </div>
         </div>
 
-        <div className="section-label">Media de kcal por franja</div>
+        <div className="section-label">{franjasPage===0 ? "Hoy por franja" : "Media del mes por franja"}</div>
         <div className="franjas-pager" ref={franjasPagerRef} onScroll={handleFranjasPagerScroll}>
-          {[mediasPorFranja.slice(0,3), mediasPorFranja.slice(3,6)].map((grupo, pageIdx)=>(
-            <div className="franjas-page" key={pageIdx}>
-              <div className="franja-stats-grid">
-                {grupo.map(f=>(
-                  <div className="franja-stats-card" key={f.id}>
-                    <span className="franja-stats-card-icon">{f.icon}</span>
-                    <span className="franja-stats-card-label">{f.label}</span>
-                    <span className="franja-stats-card-num">{f.media>0 ? `${f.media}` : '—'}</span>
-                    {f.media>0 && <span className="franja-stats-card-unit">kcal</span>}
+          <div className="franjas-page">
+            <div className="franja-stats-list">
+              {kcalHoyPorFranja.map(f=>{
+                const maxValor = Math.max(1, ...kcalHoyPorFranja.map(x=>x.valor||1));
+                return (
+                  <div className="franja-stats-item" key={f.id}>
+                    <span className="franja-stats-icon">{f.icon}</span>
+                    <span className="franja-stats-label">{f.label}</span>
+                    <div className="franja-stats-bar-wrap">
+                      <div className="franja-stats-bar" style={{width: (f.valor>0 ? Math.min(100, (f.valor/maxValor)*100) : 0)+'%'}}></div>
+                    </div>
+                    <span className="franja-stats-num">{f.valor>0 ? `${f.valor} kcal` : '—'}</span>
                   </div>
-                ))}
-              </div>
+                );
+              })}
             </div>
-          ))}
+          </div>
+          <div className="franjas-page">
+            <div className="franja-stats-list">
+              {mediasPorFranja.map(f=>{
+                const maxValor = Math.max(1, ...mediasPorFranja.map(x=>x.valor||1));
+                return (
+                  <div className="franja-stats-item" key={f.id}>
+                    <span className="franja-stats-icon">{f.icon}</span>
+                    <span className="franja-stats-label">{f.label}</span>
+                    <div className="franja-stats-bar-wrap">
+                      <div className="franja-stats-bar" style={{width: (f.valor>0 ? Math.min(100, (f.valor/maxValor)*100) : 0)+'%'}}></div>
+                    </div>
+                    <span className="franja-stats-num">{f.valor>0 ? `${f.valor} kcal` : '—'}</span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
         </div>
         <div className="franjas-pager-dots">
           <span className={"franjas-dot"+(franjasPage===0?" active":"")}></span>
