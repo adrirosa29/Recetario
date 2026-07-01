@@ -530,59 +530,59 @@
   .field-error-msg{ font-size:12px; color:var(--rojo-error); margin:6px 0 0; font-weight:600; }
 
   .ing-card{
-    background:var(--blanco-papel); border:1px solid var(--linea); border-radius:16px;
-    padding:14px; margin-bottom:10px; position:relative; transition:border-color .3s ease;
+    background:var(--blanco-papel); border:1px solid var(--linea); border-radius:12px;
+    padding:10px 12px; margin-bottom:7px; position:relative; transition:border-color .3s ease;
   }
   .ing-card.ing-card-new{ border:2px solid var(--oliva); }
   .ing-card-name-row{ display:flex; align-items:center; gap:8px; }
   .ing-card-name-input{
-    flex:1; min-width:0; border:none; background:transparent; font-size:16px; font-weight:600;
-    color:var(--carbon); padding:4px 0; outline:none; font-family:inherit;
+    flex:1; min-width:0; border:none; background:transparent; font-size:14.5px; font-weight:600;
+    color:var(--carbon); padding:2px 0; outline:none; font-family:inherit;
   }
   .ing-card-name-input::placeholder{ color:#b8ad9a; font-weight:500; }
-  .ing-card-kcal-info{ margin-top:7px; min-height:18px; }
-  .ing-kcal-hint{ font-size:11.5px; color:#a39a8c; line-height:1.4; }
+  .ing-card-kcal-info{ margin-top:4px; min-height:15px; }
+  .ing-kcal-hint{ font-size:11px; color:#a39a8c; line-height:1.3; }
   .ing-kcal-link{
-    background:none; border:none; color:var(--oliva); font-size:11.5px; font-weight:700;
+    background:none; border:none; color:var(--oliva); font-size:11px; font-weight:700;
     text-decoration:underline; cursor:pointer; padding:0; font-family:inherit;
   }
   .ing-kcal-chip{
-    display:inline-block; font-size:11.5px; font-weight:700; color:var(--oliva);
-    background:rgba(74,93,58,0.1); padding:3px 9px; border-radius:100px;
+    display:inline-block; font-size:11px; font-weight:700; color:var(--oliva);
+    background:rgba(74,93,58,0.1); padding:2px 8px; border-radius:100px;
   }
   .ing-kcal-manual-row{ display:flex; align-items:center; gap:8px; }
   .ing-kcal-manual-input{
-    width:84px; padding:6px 9px; border-radius:9px; border:1px solid var(--linea);
-    background:var(--crema); font-size:12.5px; flex-shrink:0;
+    width:76px; padding:5px 8px; border-radius:8px; border:1px solid var(--linea);
+    background:var(--crema); font-size:12px; flex-shrink:0;
   }
   .ing-kcal-manual-input:focus{ outline:2px solid var(--oliva); outline-offset:1px; }
 
-  .ing-card-controls{ display:flex; align-items:center; gap:10px; margin-top:12px; }
+  .ing-card-controls{ display:flex; align-items:center; gap:8px; margin-top:8px; }
   .ing-qty-stepper{
-    display:flex; align-items:center; gap:6px; background:var(--crema); border-radius:12px;
-    padding:5px 6px; flex-shrink:0;
+    display:flex; align-items:center; gap:4px; background:var(--crema); border-radius:10px;
+    padding:3px 5px; flex-shrink:0;
   }
   .ing-qty-stepper button{
-    width:26px; height:26px; border-radius:50%; border:1.5px solid var(--oliva); background:none;
-    color:var(--oliva); font-size:15px; line-height:1; cursor:pointer; flex-shrink:0;
+    width:22px; height:22px; border-radius:50%; border:1.5px solid var(--oliva); background:none;
+    color:var(--oliva); font-size:13px; line-height:1; cursor:pointer; flex-shrink:0;
     display:flex; align-items:center; justify-content:center; padding:0;
   }
   .ing-qty-stepper button:disabled{ opacity:0.3; border-color:#b8ad9a; cursor:default; }
   .ing-qty-stepper button:not(:disabled):active{ background:var(--oliva); color:var(--crema); }
   .ing-qty-stepper input{
-    width:46px; border:none; background:transparent; text-align:center; font-size:15px;
+    width:38px; border:none; background:transparent; text-align:center; font-size:13.5px;
     font-weight:700; color:var(--carbon); padding:0; outline:none;
   }
   .ing-qty-stepper input:disabled{ color:#b8ad9a; }
   .ing-unidad-select{
-    flex-shrink:0; padding:7px 6px; border-radius:10px; border:1px solid var(--linea);
-    background:var(--blanco-papel); font-size:13px; color:var(--carbon); max-width:62px;
+    flex-shrink:0; padding:5px 4px; border-radius:8px; border:1px solid var(--linea);
+    background:var(--blanco-papel); font-size:12px; color:var(--carbon); max-width:56px;
   }
   .ing-card-remove{
-    background:none; border:none; color:#b8ad9a; font-size:20px; cursor:pointer;
+    background:none; border:none; color:#b8ad9a; font-size:18px; cursor:pointer;
     padding:0 2px; flex-shrink:0; line-height:1;
   }
-  .ing-card-kcal-total{ flex:1; text-align:right; font-size:14px; font-weight:700; color:var(--terracota); }
+  .ing-card-kcal-total{ flex:1; text-align:right; font-size:13px; font-weight:700; color:var(--terracota); }
 
   .ing-total-row{
     display:flex; justify-content:space-between; align-items:center; margin-top:18px;
@@ -806,6 +806,31 @@ const FRANJAS = [
 const MESES = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
 const DIAS_SEMANA = ["L","M","X","J","V","S","D"];
 
+// ---------- Navegación con el botón "atrás" (móvil / navegador) ----------
+// Pila de funciones que cierran la pantalla o el panel actualmente abierto.
+// Cada vez que se abre una pantalla/modal (detalle, formulario, panel del día,
+// selector de recetas, ajuste de ingredientes...) se añade una entrada al
+// historial del navegador con pushBackHandler. Al pulsar "atrás" (hardware o
+// del navegador) se dispara "popstate", que recupera esa función y cierra solo
+// ese nivel, sin salir de la app. Los botones de cerrar/cancelar de la propia
+// interfaz llaman a goBack() en vez de cambiar el estado directamente, para
+// que ambos caminos (botón atrás y botón de cerrar) se comporten igual y no
+// dejen entradas de historial "huérfanas".
+const _backStack = [];
+function pushBackHandler(closeFn){
+  _backStack.push(closeFn);
+  window.history.pushState({ appNav: _backStack.length }, '');
+}
+function goBack(){
+  if(_backStack.length>0){
+    window.history.back();
+  }
+}
+window.addEventListener('popstate', ()=>{
+  const fn = _backStack.pop();
+  if(fn) fn();
+});
+
 function fechaToKey(date){
   const y = date.getFullYear();
   const m = (date.getMonth()+1).toString().padStart(2,'0');
@@ -979,6 +1004,17 @@ function App(){
     });
   },[]);
 
+  // Navegación a detalle/formulario que registra cómo volver con el botón "atrás"
+  const openDetail = (id)=>{
+    pushBackHandler(()=> setView({screen:"list"}));
+    setView({screen:"detail", id});
+  };
+  const openForm = (id, categoriaInicial)=>{
+    const backTarget = id ? {screen:"detail", id} : {screen:"list"};
+    pushBackHandler(()=> setView(backTarget));
+    setView({screen:"form", id, categoriaInicial});
+  };
+
   const saveRecipe = async (recipe)=>{
     const toSave = { ...recipe, creadoEn: recipe.creadoEn || Date.now() };
     await dbPut(toSave);
@@ -1124,7 +1160,7 @@ function App(){
                       const totalKcal = calcTotalKcalBase(r.ingredientes||[]);
                       const kcalPerServing = servingsBase ? Math.round(totalKcal/servingsBase) : 0;
                       return (
-                        <div key={r.id} className="recipe-card" onClick={()=>setView({screen:"detail", id:r.id})}>
+                        <div key={r.id} className="recipe-card" onClick={()=>openDetail(r.id)}>
                           {r.destacada && <span className="tab">Favorita</span>}
                           <div className="stamp-sm">{catIcon(r.categoria)}</div>
                           <div className="info">
@@ -1145,7 +1181,7 @@ function App(){
             )}
           </main>
 
-          <button className="fab" onClick={()=>setView({screen:"form", id:null, categoriaInicial: (filtro && filtro!=="todas") ? filtro : "comida"})} aria-label="Añadir receta">+</button>
+          <button className="fab" onClick={()=>openForm(null, (filtro && filtro!=="todas") ? filtro : "comida")} aria-label="Añadir receta">+</button>
         </React.Fragment>
       )}
 
@@ -1186,8 +1222,8 @@ function App(){
       {view.screen==="detail" && (
         <DetailScreen
           recipe={recetas.find(r=>r.id===view.id)}
-          onClose={()=>setView({screen:"list"})}
-          onEdit={(id)=>setView({screen:"form", id})}
+          onClose={goBack}
+          onEdit={(id)=>openForm(id)}
           onDelete={deleteRecipe}
         />
       )}
@@ -1196,7 +1232,7 @@ function App(){
         <FormScreen
           recipe={view.id ? recetas.find(r=>r.id===view.id) : null}
           categoriaInicial={view.categoriaInicial}
-          onClose={()=> view.id ? setView({screen:"detail", id:view.id}) : setView({screen:"list"})}
+          onClose={goBack}
           onSave={saveRecipe}
           alimentosPersonales={alimentosPersonales}
           onSaveAlimentoPersonal={saveAlimentoPersonal}
@@ -1430,7 +1466,7 @@ function CalendarScreen({ recetas, plan, alimentosPersonales, objetivoKcal, onAd
               <div
                 key={idx}
                 className={"cal-day"+(gd.otherMonth?" other-month":"")+(isPast?" past":"")+(colorObj?" obj-"+colorObj:"")}
-                onClick={()=>setSelectedDay(gd.date)}
+                onClick={()=>{ pushBackHandler(()=>setSelectedDay(null)); setSelectedDay(gd.date); }}
               >
                 {isToday && <span className="today-mark" aria-label="Hoy"></span>}
                 <span className="daynum">{gd.date.getDate()}</span>
@@ -1455,7 +1491,7 @@ function CalendarScreen({ recetas, plan, alimentosPersonales, objetivoKcal, onAd
           alimentosPersonales={alimentosPersonales}
           franjaList={franjaList}
           kcalDeItem={kcalDeItem}
-          onClose={()=>setSelectedDay(null)}
+          onClose={goBack}
           onAdd={(franjaId, recetaId)=> onAddToSlot(fechaToKey(selectedDay), franjaId, recetaId)}
           onRemove={(franjaId, index)=> onRemoveFromSlot(fechaToKey(selectedDay), franjaId, index)}
           onUpdateRaciones={(franjaId, index, raciones)=> onUpdateRaciones(fechaToKey(selectedDay), franjaId, index, raciones)}
@@ -1510,7 +1546,7 @@ function DayPanel({ date, plan, recetaById, recetas, alimentosPersonales, franja
                         {tieneIngredientes && (
                           <button
                             className="slot-edit"
-                            onClick={()=>setEditingItem({ franjaId:f.id, index:idx, item, receta })}
+                            onClick={()=>{ pushBackHandler(()=>setEditingItem(null)); setEditingItem({ franjaId:f.id, index:idx, item, receta }); }}
                             aria-label="Editar cantidades para este día"
                           >✎</button>
                         )}
@@ -1534,7 +1570,7 @@ function DayPanel({ date, plan, recetaById, recetas, alimentosPersonales, franja
                   </div>
                 );
               })}
-              <div className="franja-slot empty" onClick={()=>setPickerFor(f.id)}>
+              <div className="franja-slot empty" onClick={()=>{ pushBackHandler(()=>setPickerFor(null)); setPickerFor(f.id); }}>
                 + Añadir {items.length>0 ? 'otro' : ''}
               </div>
             </div>
@@ -1547,13 +1583,13 @@ function DayPanel({ date, plan, recetaById, recetas, alimentosPersonales, franja
           recetas={recetas}
           alimentosPersonales={alimentosPersonales}
           franjaLabel={FRANJAS.find(f=>f.id===pickerFor).label}
-          onSelect={(recetaId)=>{ onAdd(pickerFor, recetaId); setPickerFor(null); }}
+          onSelect={(recetaId)=>{ onAdd(pickerFor, recetaId); goBack(); }}
           onCreateQuickExtra={async (nombre, kcal)=>{
             const newId = await onCreateQuickExtra(nombre, kcal);
             onAdd(pickerFor, newId);
-            setPickerFor(null);
+            goBack();
           }}
-          onClose={()=>setPickerFor(null)}
+          onClose={goBack}
         />
       )}
 
@@ -1569,9 +1605,9 @@ function DayPanel({ date, plan, recetaById, recetas, alimentosPersonales, franja
           onSaveAlimentoPersonal={onSaveAlimentoPersonal}
           onSave={(ingredientesAjustados)=>{
             onUpdateIngredientes(editingItem.franjaId, editingItem.index, ingredientesAjustados);
-            setEditingItem(null);
+            goBack();
           }}
-          onClose={()=>setEditingItem(null)}
+          onClose={goBack}
         />
       )}
     </div>
@@ -2141,7 +2177,7 @@ function FormScreen({ recipe, categoriaInicial, onClose, onSave, alimentosPerson
   const totalKcalActual = Math.round(calcTotalKcalBase(ingredientes));
 
   return (
-    <div className="screen">
+    <div className="screen" onClick={e=>e.stopPropagation()}>
       <div className="screen-top">
         <button className="link-btn" onClick={onClose}>Cancelar</button>
         <div className="title">{dayEditMode ? "Ajustar para hoy" : (isEdit ? "Editar receta" : "Nueva receta")}</div>
