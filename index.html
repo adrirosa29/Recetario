@@ -1,0 +1,2395 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#4A5D3A">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Recetario">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="manifest" href="manifest.json">
+<title>Recetario</title>
+<style>
+  :root{
+    --crema:#FAF6EF;
+    --crema-osc:#F0E9DB;
+    --oliva:#4A5D3A;
+    --oliva-osc:#37452B;
+    --terracota:#C8704F;
+    --carbon:#2B2622;
+    --dorado:#D4A04C;
+    --linea:#E4DBC8;
+    --blanco-papel:#FFFDF9;
+    --rojo-error:#B3432B;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color: transparent;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--crema);
+    color:var(--carbon);
+    font-family:'Source Sans Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    -webkit-font-smoothing:antialiased;
+    overscroll-behavior-y: none;
+  }
+  @font-face{
+    font-family:'fallback-serif';
+    src:local('Georgia');
+  }
+  .serif{ font-family: 'Iowan Old Style','Palatino Linotype', Georgia, 'fallback-serif', serif; }
+  #root{min-height:100vh; display:flex; flex-direction:column;}
+
+  /* ---- Top bar ---- */
+  .topbar{
+    position:sticky; top:0; z-index:20;
+    background:var(--crema);
+    padding:calc(env(safe-area-inset-top) + 18px) 20px 14px;
+    border-bottom:1px solid var(--linea);
+    display:flex; align-items:center; justify-content:space-between;
+  }
+  .brand{ display:flex; align-items:center; gap:10px; }
+  .stamp{
+    width:34px;height:34px;border-radius:50%;
+    border:1.5px solid var(--oliva);
+    display:flex;align-items:center;justify-content:center;
+    font-family:'fallback-serif',serif; font-size:15px; color:var(--oliva); font-style:italic;
+    flex-shrink:0;
+  }
+  .brand h1{ font-size:21px; margin:0; font-weight:600; letter-spacing:-0.2px;}
+  .icon-btn{
+    width:40px;height:40px;border-radius:50%;
+    background:var(--oliva); color:var(--crema);
+    border:none; display:flex; align-items:center; justify-content:center;
+    font-size:22px; cursor:pointer; line-height:0;
+  }
+  .icon-btn:active{ transform: scale(0.94); }
+  .icon-btn.ghost{ background:transparent; color:var(--oliva); border:1.5px solid var(--oliva); }
+
+  main{ flex:1; padding:18px 20px 140px; max-width:640px; margin:0 auto; width:100%; }
+
+  /* ---- search ---- */
+  .search-wrap{ margin-bottom:18px; position:relative; }
+  .search-wrap input{
+    width:100%; padding:12px 16px 12px 40px; border-radius:14px;
+    border:1px solid var(--linea); background:var(--blanco-papel);
+    font-size:15px; color:var(--carbon);
+  }
+  .search-wrap input::placeholder{ color:#9b9182; }
+  .search-wrap input:focus{ outline:2px solid var(--oliva); outline-offset:1px; }
+  .search-icon{ position:absolute; left:14px; top:50%; transform:translateY(-50%); opacity:0.5; font-size:15px; }
+
+  .filters{ display:flex; gap:8px; overflow-x:auto; margin-bottom:20px; padding-bottom:4px; scrollbar-width:none; }
+
+  /* ---- Pantalla de selección de categoría ---- */
+  .back-btn{
+    width:32px; height:32px; border-radius:50%; border:1.5px solid var(--linea); background:var(--blanco-papel);
+    color:var(--oliva); font-size:17px; display:flex; align-items:center; justify-content:center;
+    cursor:pointer; margin-right:2px; flex-shrink:0;
+  }
+  .cat-grid{
+    display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:8px;
+  }
+  .cat-card{
+    aspect-ratio:1; border-radius:20px; cursor:pointer; position:relative; overflow:hidden;
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px;
+    border:1px solid var(--linea); transition:transform .15s ease;
+  }
+  .cat-card:active{ transform:scale(0.96); }
+  .cat-card-icon{ font-size:36px; line-height:1; position:relative; }
+  .cat-card-icon-extra{ font-size:18px; position:absolute; bottom:-4px; right:-14px; }
+  .cat-card-label{ font-size:16px; font-weight:700; font-family:'fallback-serif',serif; }
+  .cat-card-count{ font-size:11.5px; opacity:0.65; font-weight:600; }
+
+  .cat-desayuno{ background:linear-gradient(150deg, #FCEFCB, #F7DFA0); color:#8a6a1a; }
+  .cat-comida{ background:linear-gradient(150deg, #E6ECDC, #CBDAB4); color:#46562f; }
+  .cat-cena{ background:linear-gradient(150deg, #DDE3EC, #B9C5DB); color:#33415c; }
+  .cat-postre{ background:linear-gradient(150deg, #F6DDE3, #EFC0CB); color:#8a3a4d; }
+  .cat-snack{ background:linear-gradient(150deg, #EFE3D6, #DCC7AC); color:#6b4d2c; }
+  .cat-bebida{ background:linear-gradient(150deg, #DCEAE8, #B7D6D1); color:#2d5650; }
+
+  .ver-todas-btn{
+    width:100%; padding:13px; border-radius:14px; border:1.5px dashed var(--linea); background:transparent;
+    color:var(--oliva); font-size:14px; font-weight:600; cursor:pointer; margin-top:16px;
+  }
+  .list-category-title{
+    display:flex; align-items:center; gap:10px; margin-bottom:18px;
+  }
+  .list-category-icon{ font-size:26px; line-height:1; }
+  .list-category-title h2{ font-size:21px; font-weight:700; margin:0; font-family:'fallback-serif',serif; }
+  .filters::-webkit-scrollbar{display:none;}
+  .chip{
+    flex-shrink:0; padding:7px 14px; border-radius:100px; font-size:13px;
+    border:1px solid var(--linea); background:var(--blanco-papel); color:var(--carbon);
+    cursor:pointer; white-space:nowrap;
+  }
+  .chip.active{ background:var(--oliva); color:var(--crema); border-color:var(--oliva); }
+
+  /* ---- recipe cards (fichero) ---- */
+  .card-list{ display:flex; flex-direction:column; gap:12px; }
+  .recipe-card{
+    background:var(--blanco-papel);
+    border:1px solid var(--linea);
+    border-radius:16px;
+    padding:16px;
+    display:flex; gap:14px; align-items:center;
+    cursor:pointer;
+    position:relative;
+    transition:transform .12s ease;
+  }
+  .recipe-card:active{ transform: scale(0.985); }
+  .recipe-card .tab{
+    position:absolute; top:-1px; left:18px;
+    background:var(--dorado); color:var(--carbon);
+    font-size:10px; font-weight:700; letter-spacing:0.5px; text-transform:uppercase;
+    padding:3px 9px; border-radius:0 0 6px 6px;
+  }
+  .stamp-sm{
+    width:46px;height:46px;border-radius:50%;flex-shrink:0;
+    border:1.5px solid var(--oliva); color:var(--oliva);
+    display:flex;align-items:center;justify-content:center; font-size:20px;
+  }
+  .recipe-card .info{ flex:1; min-width:0; }
+  .recipe-card h3{ margin:2px 0 4px; font-size:17px; font-weight:600; }
+  .meta-row{ display:flex; gap:10px; font-size:12.5px; color:#7a7163; flex-wrap:wrap; }
+  .meta-row span{ display:flex; align-items:center; gap:3px; }
+  .kcal-badge{
+    font-size:12.5px; font-weight:700; color:var(--terracota);
+    background:rgba(200,112,79,0.1); padding:3px 9px; border-radius:8px; flex-shrink:0;
+  }
+
+  .empty{
+    text-align:center; padding:60px 20px; color:#9b9182;
+  }
+  .empty .stamp{ width:60px;height:60px;font-size:26px; margin:0 auto 16px; }
+  .empty h3{ color:var(--carbon); font-size:18px; margin-bottom:6px; }
+  .empty p{ font-size:14px; line-height:1.5; }
+
+  /* ---- FAB ---- */
+  .fab{
+    position:fixed; bottom:96px; right:24px; z-index:30;
+    width:58px;height:58px;border-radius:50%;
+    background:var(--terracota); color:white; border:none;
+    font-size:28px; box-shadow:0 6px 16px rgba(200,112,79,0.4);
+    cursor:pointer; display:flex; align-items:center; justify-content:center;
+  }
+  .fab:active{ transform: scale(0.92); }
+
+  .bottom-nav{
+    position:fixed; bottom:0; left:0; right:0; z-index:25;
+    background:var(--blanco-papel); border-top:1px solid var(--linea);
+    display:flex; padding:8px 0 calc(env(safe-area-inset-bottom) + 8px);
+  }
+  .bottom-nav-item{
+    flex:1; display:flex; flex-direction:column; align-items:center; gap:3px;
+    background:none; border:none; padding:6px 0; cursor:pointer;
+    color:#9b9182; font-size:11.5px; font-weight:600;
+  }
+  .bottom-nav-icon{ font-size:20px; line-height:1; filter:grayscale(1); opacity:0.6; }
+  .bottom-nav-item.active{ color:var(--oliva); }
+  .bottom-nav-item.active .bottom-nav-icon{ filter:none; opacity:1; }
+
+  /* ---- Calendario ---- */
+  .cal-main{ flex:1; padding:18px 20px 140px; max-width:640px; margin:0 auto; width:100%; }
+  .cal-header{
+    display:flex; align-items:center; justify-content:space-between; margin-bottom:6px;
+  }
+  .cal-header h2{ font-size:20px; font-weight:700; margin:0; text-transform:capitalize; }
+  .cal-nav-btn{
+    width:36px; height:36px; border-radius:50%; border:1.5px solid var(--linea); background:var(--blanco-papel);
+    color:var(--oliva); font-size:16px; display:flex; align-items:center; justify-content:center; cursor:pointer;
+  }
+  .cal-today-btn{
+    font-size:12px; color:var(--oliva); font-weight:600; background:none; border:none; cursor:pointer;
+    text-decoration:underline; margin-bottom:16px; padding:0;
+  }
+
+  .cal-summary-row{ display:flex; gap:10px; margin-bottom:20px; }
+  .cal-summary-box{
+    flex:1; background:var(--blanco-papel); border:1px solid var(--linea); border-radius:14px;
+    padding:12px 10px; text-align:center;
+  }
+  .cal-summary-box .num{ font-size:18px; font-weight:700; color:var(--terracota); }
+  .cal-summary-box .lbl{ font-size:10px; color:#8a8071; text-transform:uppercase; letter-spacing:0.3px; margin-top:2px; }
+
+  .cal-weekdays{ display:grid; grid-template-columns:repeat(7,1fr); margin-bottom:6px; }
+  .cal-weekdays span{ text-align:center; font-size:11px; color:#a39a8c; font-weight:700; }
+
+  .cal-grid{ display:grid; grid-template-columns:repeat(7,1fr); gap:5px; }
+  .cal-day{
+    aspect-ratio:1; border-radius:10px; border:1px solid var(--linea); background:var(--blanco-papel);
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    cursor:pointer; position:relative; padding:2px; gap:2px;
+  }
+  .cal-day.other-month{ opacity:0.35; }
+  .today-mark{
+    position:absolute; top:4px; right:4px; width:6px; height:6px; border-radius:50%;
+    background:var(--oliva); border:1px solid var(--blanco-papel);
+  }
+  .cal-day.past:not(.other-month){ background:var(--crema-osc); }
+  .cal-day.past:not(.other-month) .daynum{ color:#a39a8c; }
+  .cal-day.past:not(.other-month) .daykcal{ color:#b8a99a; }
+  .cal-day.past:not(.other-month) .daydot{ background:#bcb6a8; }
+  .cal-day .daynum{ font-size:12.5px; font-weight:600; color:var(--carbon); }
+  .cal-day .daykcal{ font-size:9px; color:var(--terracota); font-weight:700; }
+  .cal-day .daydots{ display:flex; gap:2px; margin-top:1px; }
+  .cal-day .daydot{ width:4px; height:4px; border-radius:50%; background:var(--oliva); }
+
+  .cal-day.obj-verde{ background:#E3EBD9; border-color:#C5D6AE; }
+  .cal-day.obj-verde .daynum{ color:#3b5226; }
+  .cal-day.obj-verde .daykcal{ color:#4d6b30; }
+  .cal-day.obj-ambar{ background:#FBEAD0; border-color:#F0CE96; }
+  .cal-day.obj-ambar .daynum{ color:#8a5a17; }
+  .cal-day.obj-ambar .daykcal{ color:#9c6515; }
+  .cal-day.obj-rojo{ background:#F6DAD3; border-color:#E8AD9C; }
+  .cal-day.obj-rojo .daynum{ color:#8a3221; }
+  .cal-day.obj-rojo .daykcal{ color:#9c3a26; }
+
+  /* días pasados CON color de objetivo: versión algo más apagada de cada color, pero siempre identificable */
+  .cal-day.obj-verde.past:not(.other-month){ background:#D6E0C7; border-color:#B5C99C; }
+  .cal-day.obj-verde.past:not(.other-month) .daynum{ color:#4d6b30; }
+  .cal-day.obj-verde.past:not(.other-month) .daykcal{ color:#5d7a3c; }
+  .cal-day.obj-ambar.past:not(.other-month){ background:#F0DDB8; border-color:#E2BC7F; }
+  .cal-day.obj-ambar.past:not(.other-month) .daynum{ color:#8a5a17; }
+  .cal-day.obj-ambar.past:not(.other-month) .daykcal{ color:#9c6515; }
+  .cal-day.obj-rojo.past:not(.other-month){ background:#EAC2B5; border-color:#D99584; }
+  .cal-day.obj-rojo.past:not(.other-month) .daynum{ color:#8a3221; }
+  .cal-day.obj-rojo.past:not(.other-month) .daykcal{ color:#9c3a26; }
+
+  /* ---- Estadísticas ---- */
+  .stats-row{ display:flex; gap:10px; margin-bottom:8px; }
+  .stats-box{
+    flex:1; background:var(--blanco-papel); border:1px solid var(--linea); border-radius:16px;
+    padding:16px 10px; text-align:center;
+  }
+  .stats-num{ font-size:24px; font-weight:700; color:var(--terracota); line-height:1.1; }
+  .stats-lbl{ font-size:10.5px; color:#8a8071; text-transform:uppercase; letter-spacing:0.3px; margin-top:6px; line-height:1.3; }
+  .stats-box.obj-verde{ background:#E3EBD9; border-color:#C5D6AE; }
+  .stats-box.obj-verde .stats-num{ color:#3b5226; }
+  .stats-box.obj-verde .stats-lbl{ color:#4d6b30; }
+  .stats-box.obj-ambar{ background:#FBEAD0; border-color:#F0CE96; }
+  .stats-box.obj-ambar .stats-num{ color:#8a5a17; }
+  .stats-box.obj-ambar .stats-lbl{ color:#9c6515; }
+  .stats-box.obj-rojo{ background:#F6DAD3; border-color:#E8AD9C; }
+  .stats-box.obj-rojo .stats-num{ color:#8a3221; }
+  .stats-box.obj-rojo .stats-lbl{ color:#9c3a26; }
+
+  .franjas-pager{
+    display:flex; overflow-x:auto; scroll-snap-type:x mandatory;
+    scrollbar-width:none; width:100%; touch-action:pan-x; -webkit-overflow-scrolling:touch;
+  }
+  .franjas-pager::-webkit-scrollbar{ display:none; }
+  .franjas-page{
+    flex:0 0 100%; flex-shrink:0; width:100%; scroll-snap-align:start; scroll-snap-stop:always;
+    box-sizing:border-box; min-width:0;
+  }
+  .franjas-pager-dots{ display:flex; justify-content:center; gap:6px; margin:10px 0 8px; }
+  .franjas-dot{ width:6px; height:6px; border-radius:50%; background:var(--linea); }
+  .franjas-dot.active{ background:var(--oliva); width:16px; border-radius:100px; transition:width .2s ease; }
+
+  .franja-stats-list{ display:flex; flex-direction:column; gap:10px; }
+  .franja-stats-item{
+    display:flex; align-items:center; gap:10px; background:var(--blanco-papel);
+    border:1px solid var(--linea); border-radius:14px; padding:12px 14px;
+  }
+  .franja-stats-icon{ font-size:16px; flex-shrink:0; width:20px; text-align:center; }
+  .franja-stats-label{ font-size:13.5px; font-weight:600; color:var(--carbon); flex:0 0 70px; flex-shrink:0; }
+  .franja-stats-bar-wrap{
+    flex:1; height:8px; background:var(--crema-osc); border-radius:100px; overflow:hidden; min-width:0;
+  }
+  .franja-stats-bar{
+    height:100%; background:var(--terracota); border-radius:100px; transition:width .3s ease;
+  }
+  .franja-stats-num{ font-size:13px; font-weight:700; color:var(--terracota); flex-shrink:0; width:64px; text-align:right; }
+
+  .objetivo-edit-row{ display:flex; align-items:center; gap:8px; margin-bottom:8px; flex-wrap:wrap; }
+  .objetivo-edit-row input{
+    flex:1 1 120px; min-width:0; padding:11px 14px; border-radius:12px; border:1px solid var(--linea);
+    background:var(--blanco-papel); font-size:15px; color:var(--carbon);
+  }
+  .objetivo-edit-row input:focus{ outline:2px solid var(--oliva); outline-offset:1px; }
+  .objetivo-unit{ font-size:13px; color:#8a8071; flex-shrink:0; }
+  .objetivo-save-btn{
+    flex:1 1 100%; padding:11px 16px; border-radius:12px; border:none; background:var(--oliva);
+    color:var(--crema); font-size:14px; font-weight:700; cursor:pointer; margin-top:2px;
+  }
+  .objetivo-save-btn:disabled{ opacity:0.5; }
+  .objetivo-display-row{
+    display:flex; align-items:center; justify-content:space-between; background:var(--blanco-papel);
+    border:1px solid var(--linea); border-radius:14px; padding:14px 16px; margin-bottom:8px;
+  }
+  .objetivo-display-num{ font-size:17px; font-weight:700; color:var(--carbon); }
+
+  .cumplimiento-compact{ margin-bottom:18px; }
+  .cumplimiento-compact-header{
+    display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;
+  }
+  .cumplimiento-compact-title{ font-size:12.5px; font-weight:700; text-transform:uppercase; letter-spacing:0.4px; color:#7a7163; }
+  .cumplimiento-periodo-select{
+    font-size:12px; padding:5px 8px; border-radius:9px; border:1px solid var(--linea);
+    background:var(--blanco-papel); color:var(--carbon);
+  }
+  .objetivo-pct-row-compact{ display:flex; gap:8px; }
+  .objetivo-pct-box-compact{ flex:1; border-radius:12px; padding:9px 6px; text-align:center; }
+  .objetivo-pct-num-compact{ font-size:15px; font-weight:700; }
+  .objetivo-pct-dias-compact{ font-size:9.5px; margin-top:1px; font-weight:600; opacity:0.85; }
+  .objetivo-pct-verde{ background:#E3EBD9; }
+  .objetivo-pct-verde .objetivo-pct-num-compact{ color:#3b5226; }
+  .objetivo-pct-verde .objetivo-pct-dias-compact{ color:#4d6b30; }
+  .objetivo-pct-ambar{ background:#FBEAD0; }
+  .objetivo-pct-ambar .objetivo-pct-num-compact{ color:#8a5a17; }
+  .objetivo-pct-ambar .objetivo-pct-dias-compact{ color:#9c6515; }
+  .objetivo-pct-rojo{ background:#F6DAD3; }
+  .objetivo-pct-rojo .objetivo-pct-num-compact{ color:#8a3221; }
+  .objetivo-pct-rojo .objetivo-pct-dias-compact{ color:#9c3a26; }
+
+  /* ---- panel de día (slide-up) ---- */
+  .day-panel-overlay{
+    position:fixed; inset:0; background:rgba(43,38,34,0.35); z-index:60;
+    display:flex; align-items:flex-end;
+  }
+  .day-panel{
+    background:var(--crema); border-radius:20px 20px 0 0; width:100%; max-height:85vh; overflow-y:auto;
+    padding:20px 20px calc(env(safe-area-inset-bottom) + 24px);
+  }
+  .day-panel-handle{ width:36px; height:4px; background:var(--linea); border-radius:100px; margin:0 auto 16px; }
+  .day-panel h3{ font-size:19px; margin:0 0 4px; text-transform:capitalize; }
+  .day-panel .day-total{ font-size:13px; color:var(--terracota); font-weight:700; margin-bottom:18px; }
+
+  .franja-block{ margin-bottom:16px; }
+  .franja-block .franja-label{
+    font-size:13px; font-weight:700; color:var(--oliva); display:flex; align-items:center; gap:6px; margin-bottom:8px;
+  }
+  .franja-slot{
+    background:var(--blanco-papel); border:1px solid var(--linea); border-radius:12px;
+    padding:12px 14px; display:flex; align-items:center; justify-content:space-between; gap:10px;
+    min-height:24px;
+  }
+  .franja-slot.empty{ color:#a39a8c; font-size:14px; cursor:pointer; justify-content:center; border-style:dashed; }
+  .franja-slot .slot-recipe-name{ font-size:14.5px; font-weight:600; flex:1; min-width:0; }
+  .franja-slot .slot-kcal{ font-size:12px; color:#8a8071; flex-shrink:0; }
+  .franja-slot .slot-remove{ background:none; border:none; color:#b8ad9a; font-size:18px; cursor:pointer; padding:0 2px; flex-shrink:0; }
+  .slot-top-actions{ display:flex; align-items:center; gap:6px; flex-shrink:0; }
+  .slot-edit{
+    background:none; border:none; color:#a39a8c; font-size:14px; cursor:pointer; padding:2px 4px; flex-shrink:0;
+  }
+  .slot-edit:active{ color:var(--oliva); }
+  .ajustado-badge{
+    display:inline-block; font-size:10px; font-weight:700; color:#8a6a2a; background:rgba(212,160,76,0.15);
+    padding:2px 7px; border-radius:100px; margin-left:7px; text-transform:uppercase; letter-spacing:0.2px;
+    vertical-align:middle;
+  }
+
+  .edit-plan-item{ padding-bottom:calc(env(safe-area-inset-bottom) + 24px); }
+  .edit-ing-row{
+    display:flex; align-items:center; gap:10px; padding:10px 0; border-bottom:1px solid var(--linea);
+  }
+  .edit-ing-row:last-child{ border-bottom:none; }
+  .edit-ing-name{ flex:1; font-size:14.5px; color:var(--carbon); min-width:0; }
+  .edit-ing-row input{
+    width:70px; padding:8px 10px; border-radius:10px; border:1px solid var(--linea);
+    background:var(--blanco-papel); font-size:14.5px; text-align:right;
+  }
+  .edit-ing-row input:focus{ outline:2px solid var(--oliva); outline-offset:1px; }
+  .edit-ing-unidad{ font-size:13px; color:#8a8071; width:24px; flex-shrink:0; }
+  .edit-total-row{
+    display:flex; justify-content:space-between; align-items:center; margin-top:16px;
+    padding-top:14px; border-top:1.5px solid var(--linea); font-size:14.5px; font-weight:600;
+  }
+  .edit-total-kcal{ color:var(--terracota); font-size:17px; font-weight:700; }
+
+  .franja-slot.raciones-slot{ flex-direction:column; align-items:stretch; gap:8px; }
+  .slot-top-line{ display:flex; align-items:center; justify-content:space-between; gap:8px; }
+  .slot-bottom-line{ display:flex; align-items:center; justify-content:space-between; gap:8px; }
+  .raciones-control{ display:flex; align-items:center; gap:10px; }
+  .raciones-control button{
+    width:26px; height:26px; border-radius:50%; border:1.5px solid var(--oliva); background:transparent;
+    color:var(--oliva); font-size:15px; cursor:pointer; display:flex; align-items:center; justify-content:center;
+    flex-shrink:0; line-height:1; padding:0;
+  }
+  .raciones-control button:disabled{ opacity:0.3; cursor:default; }
+  .raciones-control button:not(:disabled):active{ background:var(--oliva); color:var(--crema); }
+  .raciones-num{ font-size:12.5px; font-weight:600; color:var(--carbon); white-space:nowrap; }
+  .raciones-slot .slot-kcal{ font-size:13px; font-weight:700; color:var(--terracota); }
+
+  .recipe-picker-overlay{
+    position:fixed; inset:0; background:rgba(43,38,34,0.4); z-index:70;
+    display:flex; align-items:flex-end;
+  }
+  .recipe-picker{
+    background:var(--crema); border-radius:20px 20px 0 0; width:100%; max-height:80vh; overflow-y:auto;
+    padding:20px 20px calc(env(safe-area-inset-bottom) + 24px);
+  }
+  .recipe-picker h3{ font-size:17px; margin:0 0 14px; }
+  .recipe-picker-item{
+    background:var(--blanco-papel); border:1px solid var(--linea); border-radius:12px;
+    padding:12px 14px; margin-bottom:8px; display:flex; align-items:center; gap:10px; cursor:pointer;
+  }
+  .recipe-picker-item .stamp-sm{ width:36px; height:36px; font-size:16px; }
+  .recipe-picker-item .name{ flex:1; font-size:14.5px; font-weight:600; min-width:0; }
+  .recipe-picker-item .kcal{ font-size:12px; color:var(--terracota); flex-shrink:0; }
+  .recipe-picker-empty{ text-align:center; color:#9b9182; padding:30px 10px; font-size:14px; }
+
+  .quick-extra-btn{
+    width:100%; padding:12px; border-radius:12px; border:1.5px dashed var(--dorado);
+    background:rgba(212,160,76,0.08); color:#8a6a2a; font-size:13.5px; font-weight:600; cursor:pointer;
+    margin-bottom:14px;
+  }
+  .quick-extra-form{ padding-top:4px; }
+  .quick-extra-hint{ font-size:12.5px; color:#8a8071; margin:-4px 0 16px; line-height:1.4; }
+  .quick-extra-confirm{
+    flex:1; padding:12px; border-radius:12px; border:none; background:var(--oliva); color:var(--crema);
+    font-size:14.5px; font-weight:700; cursor:pointer;
+  }
+  .quick-extra-confirm:disabled{ opacity:0.5; }
+
+  /* ---- detail / form screens ---- */
+  .screen{
+    position:fixed; inset:0; background:var(--crema); z-index:40;
+    display:flex; flex-direction:column; overflow-y:auto;
+  }
+  .screen-top{
+    position:sticky; top:0; background:var(--crema);
+    padding:calc(env(safe-area-inset-top) + 16px) 18px 12px;
+    display:flex; align-items:center; justify-content:space-between;
+    border-bottom:1px solid var(--linea); z-index:5;
+  }
+  .screen-top .title{ font-size:16px; font-weight:600; }
+  .link-btn{ border:none; background:none; color:var(--oliva); font-size:15px; font-weight:600; cursor:pointer; padding:6px 4px;}
+  .link-btn.danger{ color:var(--terracota); }
+  .screen-body{ padding:20px; padding-bottom:120px; max-width:640px; margin:0 auto; width:100%; }
+
+  .hero-title{ font-size:28px; font-weight:700; margin:4px 0 8px; line-height:1.15; }
+  .hero-tag{ display:inline-block; background:var(--oliva); color:var(--crema); font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; padding:4px 10px; border-radius:100px; margin-bottom:14px;}
+  .stat-row{ display:flex; gap:10px; margin:16px 0 22px; }
+  .stat-box{
+    flex:1; background:var(--blanco-papel); border:1px solid var(--linea); border-radius:14px;
+    padding:12px 10px; text-align:center;
+  }
+  .stat-box .num{ font-size:19px; font-weight:700; color:var(--oliva); }
+  .stat-box .num.kcal{ color:var(--terracota); }
+  .stat-box .lbl{ font-size:10.5px; color:#8a8071; text-transform:uppercase; letter-spacing:0.4px; margin-top:2px;}
+
+  .portion-control{
+    display:flex; align-items:center; justify-content:center; gap:18px;
+    background:var(--blanco-papel); border:1px solid var(--linea); border-radius:16px;
+    padding:14px; margin-bottom:22px;
+  }
+  .portion-control button{
+    width:38px;height:38px;border-radius:50%; border:1.5px solid var(--oliva); background:transparent;
+    color:var(--oliva); font-size:20px; cursor:pointer; display:flex; align-items:center; justify-content:center;
+  }
+  .portion-control button:active{ background:var(--oliva); color:var(--crema); }
+  .portion-num{ font-size:22px; font-weight:700; min-width:70px; text-align:center; }
+  .portion-num small{ display:block; font-size:11px; font-weight:400; color:#8a8071; text-transform:uppercase; }
+
+  .section-label{
+    font-size:13px; font-weight:700; text-transform:uppercase; letter-spacing:0.6px;
+    color:var(--oliva); margin:26px 0 12px; display:flex; align-items:center; gap:8px;
+  }
+  .section-label::after{ content:''; flex:1; height:1px; background:var(--linea); }
+
+  .ingredient-row{
+    display:flex; align-items:baseline; justify-content:space-between; gap:10px;
+    padding:10px 0; border-bottom:1px solid var(--linea); font-size:15px;
+  }
+  .ingredient-row:last-child{ border-bottom:none; }
+  .ingredient-row .name{ flex:1; }
+  .ingredient-row .qty{ color:var(--oliva); font-weight:700; flex-shrink:0; font-family:'fallback-serif',serif; }
+  .ingredient-row .qty-kcal{ font-size:11.5px; color:#a39a8c; display:block; text-align:right; font-family:inherit; font-weight:400;}
+
+  .step-row{ display:flex; gap:14px; padding:14px 0; border-bottom:1px solid var(--linea); }
+  .step-row:last-child{ border-bottom:none; }
+  .step-num{
+    width:28px;height:28px;border-radius:50%; background:var(--crema-osc); color:var(--oliva);
+    display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:700; flex-shrink:0;
+    font-family:'fallback-serif',serif;
+  }
+  .step-text{ font-size:15px; line-height:1.5; padding-top:3px; }
+
+  .notes-box{
+    background:var(--crema-osc); border-left:3px solid var(--dorado); border-radius:0 12px 12px 0;
+    padding:14px 16px; font-size:14px; line-height:1.5; color:#544e42; font-style:italic;
+  }
+
+  /* ---- forms ---- */
+  .field{ margin-bottom:18px; }
+  .field label{ display:block; font-size:12.5px; font-weight:700; text-transform:uppercase; letter-spacing:0.4px; color:#7a7163; margin-bottom:7px; }
+  .field input, .field select, .field textarea{
+    width:100%; padding:12px 14px; border-radius:12px; border:1px solid var(--linea);
+    background:var(--blanco-papel); font-size:15px; color:var(--carbon); font-family:inherit;
+    min-width:0;
+  }
+  .field textarea{ resize:vertical; min-height:70px; }
+  .field input:focus, .field select:focus, .field textarea:focus{ outline:2px solid var(--oliva); outline-offset:1px; }
+  .field-row{ display:flex; gap:10px; }
+  .field-row .field{ flex:1; min-width:0; }
+
+  .field input.field-invalid{ border:1.5px solid var(--rojo-error); background:rgba(179,67,43,0.05); }
+  .field input.field-invalid:focus{ outline:2px solid var(--rojo-error); }
+  .field-error-msg{ font-size:12px; color:var(--rojo-error); margin:6px 0 0; font-weight:600; }
+
+  .ing-card{
+    background:var(--blanco-papel); border:1px solid var(--linea); border-radius:16px;
+    padding:14px; margin-bottom:10px; position:relative; transition:border-color .3s ease;
+  }
+  .ing-card.ing-card-new{ border:2px solid var(--oliva); }
+  .ing-card-name-row{ display:flex; align-items:center; gap:8px; }
+  .ing-card-name-input{
+    flex:1; min-width:0; border:none; background:transparent; font-size:16px; font-weight:600;
+    color:var(--carbon); padding:4px 0; outline:none; font-family:inherit;
+  }
+  .ing-card-name-input::placeholder{ color:#b8ad9a; font-weight:500; }
+  .ing-card-kcal-info{ margin-top:7px; min-height:18px; }
+  .ing-kcal-hint{ font-size:11.5px; color:#a39a8c; line-height:1.4; }
+  .ing-kcal-link{
+    background:none; border:none; color:var(--oliva); font-size:11.5px; font-weight:700;
+    text-decoration:underline; cursor:pointer; padding:0; font-family:inherit;
+  }
+  .ing-kcal-chip{
+    display:inline-block; font-size:11.5px; font-weight:700; color:var(--oliva);
+    background:rgba(74,93,58,0.1); padding:3px 9px; border-radius:100px;
+  }
+  .ing-kcal-manual-row{ display:flex; align-items:center; gap:8px; }
+  .ing-kcal-manual-input{
+    width:84px; padding:6px 9px; border-radius:9px; border:1px solid var(--linea);
+    background:var(--crema); font-size:12.5px; flex-shrink:0;
+  }
+  .ing-kcal-manual-input:focus{ outline:2px solid var(--oliva); outline-offset:1px; }
+
+  .ing-card-controls{ display:flex; align-items:center; gap:10px; margin-top:12px; }
+  .ing-qty-stepper{
+    display:flex; align-items:center; gap:6px; background:var(--crema); border-radius:12px;
+    padding:5px 6px; flex-shrink:0;
+  }
+  .ing-qty-stepper button{
+    width:26px; height:26px; border-radius:50%; border:1.5px solid var(--oliva); background:none;
+    color:var(--oliva); font-size:15px; line-height:1; cursor:pointer; flex-shrink:0;
+    display:flex; align-items:center; justify-content:center; padding:0;
+  }
+  .ing-qty-stepper button:disabled{ opacity:0.3; border-color:#b8ad9a; cursor:default; }
+  .ing-qty-stepper button:not(:disabled):active{ background:var(--oliva); color:var(--crema); }
+  .ing-qty-stepper input{
+    width:46px; border:none; background:transparent; text-align:center; font-size:15px;
+    font-weight:700; color:var(--carbon); padding:0; outline:none;
+  }
+  .ing-qty-stepper input:disabled{ color:#b8ad9a; }
+  .ing-unidad-select{
+    flex-shrink:0; padding:7px 6px; border-radius:10px; border:1px solid var(--linea);
+    background:var(--blanco-papel); font-size:13px; color:var(--carbon); max-width:62px;
+  }
+  .ing-card-remove{
+    background:none; border:none; color:#b8ad9a; font-size:20px; cursor:pointer;
+    padding:0 2px; flex-shrink:0; line-height:1;
+  }
+  .ing-card-kcal-total{ flex:1; text-align:right; font-size:14px; font-weight:700; color:var(--terracota); }
+
+  .ing-total-row{
+    display:flex; justify-content:space-between; align-items:center; margin-top:18px;
+    padding-top:14px; border-top:1.5px solid var(--linea); font-size:14.5px; font-weight:600;
+    color:var(--carbon);
+  }
+  .ing-total-kcal{ font-size:19px; font-weight:700; color:var(--terracota); }
+
+  .suggest-dropdown{
+    position:absolute; top:calc(100% + 4px); left:0; right:0; z-index:35;
+    background:var(--blanco-papel); border:1px solid var(--linea); border-radius:12px;
+    box-shadow:0 6px 16px rgba(43,38,34,0.18); overflow:hidden; max-height:220px; overflow-y:auto;
+  }
+  .suggest-item{
+    padding:10px 14px; display:flex; justify-content:space-between; align-items:baseline;
+    gap:10px; cursor:pointer; border-bottom:1px solid var(--linea);
+  }
+  .suggest-item:last-child{ border-bottom:none; }
+  .suggest-item:active{ background:var(--crema-osc); }
+  .suggest-name{ font-size:14px; color:var(--carbon); flex:1; min-width:0; }
+  .suggest-kcal{ font-size:11.5px; color:#a39a8c; flex-shrink:0; white-space:nowrap; }
+  .remove-x{
+    background:none;border:none; color:#b8ad9a; font-size:20px; cursor:pointer; padding:0 4px; line-height:1;
+  }
+  .kcal-lookup-status{ font-size:12px; margin-top:6px; }
+  .kcal-lookup-status.found{ color:var(--oliva); }
+  .kcal-lookup-status.searching{ color:#a39a8c; }
+  .kcal-lookup-status.none{ color:#b8ad9a; }
+
+  .add-ing-btn, .add-step-btn{
+    width:100%; padding:12px; border-radius:12px; border:1.5px dashed var(--linea);
+    background:transparent; color:var(--oliva); font-size:14px; font-weight:600; cursor:pointer;
+    margin-bottom:20px; margin-top:2px;
+  }
+  .step-form-row{ display:flex; gap:8px; margin-bottom:10px; align-items:flex-start; }
+  .step-form-row textarea{ flex:1; }
+
+  .save-bar{
+    position:fixed; bottom:0; left:0; right:0; background:var(--crema);
+    border-top:1px solid var(--linea); padding:14px 20px calc(env(safe-area-inset-bottom) + 14px);
+    z-index:50;
+  }
+  .save-bar button{
+    width:100%; padding:15px; border-radius:14px; border:none;
+    background:var(--oliva); color:var(--crema); font-size:16px; font-weight:700; cursor:pointer;
+  }
+  .save-bar button:active{ background:var(--oliva-osc); }
+  .save-bar button:disabled{ opacity:0.5; }
+
+  .toast{
+    position:fixed; bottom:100px; left:50%; transform:translateX(-50%);
+    background:var(--carbon); color:var(--crema); padding:10px 20px; border-radius:100px;
+    font-size:13.5px; z-index:90; opacity:0; transition:opacity .25s ease;
+    pointer-events:none; white-space:nowrap;
+  }
+  .toast.show{ opacity:1; }
+
+  .servings-type-toggle{ display:flex; gap:8px; margin-bottom:18px; }
+  .servings-type-toggle button{
+    flex:1; padding:10px; border-radius:12px; border:1.5px solid var(--linea); background:var(--blanco-papel);
+    color:var(--carbon); font-size:13.5px; font-weight:600; cursor:pointer;
+  }
+  .servings-type-toggle button.active{ background:var(--oliva); color:var(--crema); border-color:var(--oliva); }
+
+  ::-webkit-scrollbar{ width:0px; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script src="./vendor/react.production.min.js"></script>
+<script src="./vendor/react-dom.production.min.js"></script>
+<script src="./vendor/babel.min.js"></script>
+
+<script src="./fooddb.js"></script>
+<script type="text/babel" data-presets="react">
+const { useState, useEffect, useRef, useCallback } = React;
+
+// ---------- IndexedDB persistence ----------
+const DB_NAME = "recetario-db";
+const STORE = "recetas";
+const STORE_ALIMENTOS = "alimentos_personales";
+const STORE_PLAN = "planificacion";
+const STORE_CONFIG = "configuracion";
+function openDB(){
+  return new Promise((resolve,reject)=>{
+    const req = indexedDB.open(DB_NAME, 4);
+    req.onupgradeneeded = (e)=>{
+      const db = e.target.result;
+      if(!db.objectStoreNames.contains(STORE)){
+        db.createObjectStore(STORE, { keyPath: "id" });
+      }
+      if(!db.objectStoreNames.contains(STORE_ALIMENTOS)){
+        db.createObjectStore(STORE_ALIMENTOS, { keyPath: "clave" });
+      }
+      if(!db.objectStoreNames.contains(STORE_PLAN)){
+        db.createObjectStore(STORE_PLAN, { keyPath: "fecha" }); // fecha en formato "YYYY-MM-DD"
+      }
+      if(!db.objectStoreNames.contains(STORE_CONFIG)){
+        db.createObjectStore(STORE_CONFIG, { keyPath: "clave" });
+      }
+    };
+    req.onsuccess = ()=>resolve(req.result);
+    req.onerror = ()=>reject(req.error);
+  });
+}
+async function dbGetAll(){
+  const db = await openDB();
+  return new Promise((resolve,reject)=>{
+    const tx = db.transaction(STORE, "readonly");
+    const store = tx.objectStore(STORE);
+    const req = store.getAll();
+    req.onsuccess = ()=>resolve(req.result || []);
+    req.onerror = ()=>reject(req.error);
+  });
+}
+async function dbPut(recipe){
+  const db = await openDB();
+  return new Promise((resolve,reject)=>{
+    const tx = db.transaction(STORE, "readwrite");
+    tx.objectStore(STORE).put(recipe);
+    tx.oncomplete = ()=>resolve();
+    tx.onerror = ()=>reject(tx.error);
+  });
+}
+async function dbDelete(id){
+  const db = await openDB();
+  return new Promise((resolve,reject)=>{
+    const tx = db.transaction(STORE, "readwrite");
+    tx.objectStore(STORE).delete(id);
+    tx.oncomplete = ()=>resolve();
+    tx.onerror = ()=>reject(tx.error);
+  });
+}
+
+// --- Alimentos personales (guardados al introducir kcal/100g a mano) ---
+async function dbGetAllAlimentos(){
+  const db = await openDB();
+  return new Promise((resolve,reject)=>{
+    const tx = db.transaction(STORE_ALIMENTOS, "readonly");
+    const req = tx.objectStore(STORE_ALIMENTOS).getAll();
+    req.onsuccess = ()=>resolve(req.result || []);
+    req.onerror = ()=>reject(req.error);
+  });
+}
+async function dbPutAlimento(alimento){
+  const db = await openDB();
+  return new Promise((resolve,reject)=>{
+    const tx = db.transaction(STORE_ALIMENTOS, "readwrite");
+    tx.objectStore(STORE_ALIMENTOS).put(alimento);
+    tx.oncomplete = ()=>resolve();
+    tx.onerror = ()=>reject(tx.error);
+  });
+}
+
+// --- Planificación de comidas (calendario) ---
+async function dbGetAllPlan(){
+  const db = await openDB();
+  return new Promise((resolve,reject)=>{
+    const tx = db.transaction(STORE_PLAN, "readonly");
+    const req = tx.objectStore(STORE_PLAN).getAll();
+    req.onsuccess = ()=>resolve(req.result || []);
+    req.onerror = ()=>reject(req.error);
+  });
+}
+async function dbPutPlanDia(diaPlan){
+  const db = await openDB();
+  return new Promise((resolve,reject)=>{
+    const tx = db.transaction(STORE_PLAN, "readwrite");
+    tx.objectStore(STORE_PLAN).put(diaPlan);
+    tx.oncomplete = ()=>resolve();
+    tx.onerror = ()=>reject(tx.error);
+  });
+}
+
+// --- Configuración general (ej. objetivo de kcal diario) ---
+async function dbGetConfig(clave){
+  const db = await openDB();
+  return new Promise((resolve,reject)=>{
+    const tx = db.transaction(STORE_CONFIG, "readonly");
+    const req = tx.objectStore(STORE_CONFIG).get(clave);
+    req.onsuccess = ()=>resolve(req.result || null);
+    req.onerror = ()=>reject(req.error);
+  });
+}
+async function dbSetConfig(clave, valor){
+  const db = await openDB();
+  return new Promise((resolve,reject)=>{
+    const tx = db.transaction(STORE_CONFIG, "readwrite");
+    tx.objectStore(STORE_CONFIG).put({ clave, valor });
+    tx.oncomplete = ()=>resolve();
+    tx.onerror = ()=>reject(tx.error);
+  });
+}
+
+// ---------- helpers ----------
+const uid = ()=> Date.now().toString(36) + Math.random().toString(36).slice(2,8);
+
+const CATEGORIAS = [
+  {id:"desayuno", label:"Desayuno", icon:"☀"},
+  {id:"comida", label:"Comida", icon:"🍲"},
+  {id:"cena", label:"Cena", icon:"🌙"},
+  {id:"postre", label:"Postre", icon:"🍰", iconExtra:"🍓"},
+  {id:"snack", label:"Snack", icon:"🥨"},
+  {id:"bebida", label:"Bebida", icon:"🥤"},
+];
+const catIcon = (id)=> (CATEGORIAS.find(c=>c.id===id)||{}).icon || "❋";
+const catLabel = (id)=> (CATEGORIAS.find(c=>c.id===id)||{}).label || "Receta";
+
+const UNIDADES = ["g","kg","ml","l","ud","cda","cdta","taza","pizca","al gusto"];
+const UNIDADES_PROPORCIONALES = ["g","kg","ml","l"]; // admiten "kcal por 100g/ml"; el resto van por kcal totales directas
+
+const FRANJAS = [
+  {id:"desayuno", label:"Desayuno", icon:"☀"},
+  {id:"almuerzo", label:"Almuerzo", icon:"🥪"},
+  {id:"comida", label:"Comida", icon:"🍲"},
+  {id:"merienda", label:"Merienda", icon:"🍪"},
+  {id:"cena", label:"Cena", icon:"🌙"},
+  {id:"otros", label:"Otros", icon:"✦"},
+];
+const MESES = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
+const DIAS_SEMANA = ["L","M","X","J","V","S","D"];
+
+function fechaToKey(date){
+  const y = date.getFullYear();
+  const m = (date.getMonth()+1).toString().padStart(2,'0');
+  const d = date.getDate().toString().padStart(2,'0');
+  return `${y}-${m}-${d}`;
+}
+function keyToFecha(key){
+  const [y,m,d] = key.split('-').map(Number);
+  return new Date(y, m-1, d);
+}
+function isSameDay(a,b){
+  return a.getFullYear()===b.getFullYear() && a.getMonth()===b.getMonth() && a.getDate()===b.getDate();
+}
+// kcal por porción de una receta (total de ingredientes / porciones base)
+function kcalPorPorcion(receta){
+  if(!receta) return 0;
+  const total = calcTotalKcalBase(receta.ingredientes||[]);
+  const porciones = receta.porciones || 1;
+  return porciones ? total/porciones : 0;
+}
+
+function round1(n){ return Math.round(n*10)/10; }
+
+// total kcal for the recipe at BASE servings (sum of ingredient kcal contributions)
+function calcTotalKcalBase(ingredientes){
+  return ingredientes.reduce((sum,ing)=>{
+    const k = parseFloat(ing.kcalTotal);
+    return sum + (isNaN(k) ? 0 : k);
+  }, 0);
+}
+
+// scale a quantity from base servings to target servings
+function scaleQty(qty, baseServings, targetServings){
+  const q = parseFloat(qty);
+  if(isNaN(q) || !baseServings) return qty;
+  return q * (targetServings/baseServings);
+}
+
+function fmtQty(n){
+  if(n === "" || n===undefined || n===null || isNaN(n)) return "";
+  const r = Math.round(n*100)/100;
+  return (r % 1 === 0) ? r.toString() : r.toFixed(2).replace(/0$/,'').replace(/\.$/,'');
+}
+
+// ---------- Búsqueda nutricional: primero tabla personal, luego tabla local ----------
+async function lookupKcalPer100g(query, alimentosPersonales){
+  if(!query || query.trim().length < 2) return null;
+  // 1. tabla personal del usuario (alimentos que él mismo ha guardado antes)
+  const personal = searchPersonalFoodDB(query, alimentosPersonales || []);
+  if(personal) return { ...personal, origen:"personal" };
+  // 2. tabla local incorporada (~130 alimentos básicos)
+  const local = searchLocalFoodDB(query);
+  if(local) return { ...local, origen:"tabla" };
+  return null;
+}
+
+// ---------- App ----------
+function App(){
+  const [recetas, setRecetas] = useState([]);
+  const [alimentosPersonales, setAlimentosPersonales] = useState([]);
+  const [plan, setPlan] = useState({}); // { "YYYY-MM-DD": {desayuno,comida,cena,otros} }
+  const [objetivoKcal, setObjetivoKcal] = useState(null); // número o null si no se ha definido
+  const [loaded, setLoaded] = useState(false);
+  const [tab, setTab] = useState("recetario"); // recetario | calendario
+  const [view, setView] = useState({ screen:"list" }); // list | detail | form
+  const [search, setSearch] = useState("");
+  const [filtro, setFiltro] = useState(null); // null = pantalla de categorías; "todas" o id de categoría = lista filtrada
+  const [toast, setToast] = useState("");
+  const toastTimer = useRef(null);
+
+  useEffect(()=>{
+    Promise.all([dbGetAll(), dbGetAllAlimentos(), dbGetAllPlan(), dbGetConfig("objetivoKcal")]).then(([recetasData, alimentosData, planData, configObjetivo])=>{
+      setRecetas(recetasData.sort((a,b)=> (b.creadoEn||0)-(a.creadoEn||0)));
+      setAlimentosPersonales(alimentosData);
+      const planMap = {};
+      planData.forEach(d=>{ planMap[d.fecha] = d; });
+      setPlan(planMap);
+      if(configObjetivo && configObjetivo.valor) setObjetivoKcal(configObjetivo.valor);
+      setLoaded(true);
+    }).catch(()=>setLoaded(true));
+  },[]);
+
+  const updateObjetivoKcal = useCallback(async (valor)=>{
+    setObjetivoKcal(valor);
+    await dbSetConfig("objetivoKcal", valor);
+  },[]);
+
+  const showToast = useCallback((msg)=>{
+    setToast(msg);
+    clearTimeout(toastTimer.current);
+    toastTimer.current = setTimeout(()=>setToast(""), 1800);
+  },[]);
+
+  // Guarda (o actualiza) un alimento en la tabla personal para no repetir kcal/100g en el futuro
+  const saveAlimentoPersonal = useCallback(async (nombre, kcal100)=>{
+    if(!nombre || !nombre.trim() || isNaN(parseFloat(kcal100))) return;
+    const clave = normalize(nombre.trim());
+    const alimento = { clave, nombre: nombre.trim(), kcal100: parseFloat(kcal100), actualizadoEn: Date.now() };
+    await dbPutAlimento(alimento);
+    setAlimentosPersonales(prev=>{
+      const existing = prev.filter(a=>a.clave!==clave);
+      return [...existing, alimento];
+    });
+  },[]);
+
+  // Normaliza un día del plan al nuevo formato de listas de {recetaId, raciones},
+  // migrando formatos antiguos: id único suelto -> [{recetaId, raciones:1}]; lista de ids sueltos -> igual.
+  const normalizeDiaPlan = (diaActual, fechaKey)=>{
+    const base = diaActual || { fecha: fechaKey, desayuno:[], almuerzo:[], comida:[], merienda:[], cena:[], otros:[] };
+    const normalized = { fecha: fechaKey };
+    FRANJAS.forEach(f=>{
+      const val = base[f.id];
+      let lista = [];
+      if(Array.isArray(val)) lista = val;
+      else if(val) lista = [val];
+      // migrar cada elemento: si es un string (id suelto antiguo), convertir a {recetaId, raciones:1}
+      normalized[f.id] = lista.map(item=>
+        (typeof item === 'string') ? { recetaId: item, raciones: 1 } : item
+      );
+    });
+    return normalized;
+  };
+
+  // Añade una receta a una franja de un día concreto (no sobrescribe, se acumula), con 1 ración por defecto
+  const addToPlanSlot = useCallback(async (fechaKey, franjaId, recetaId)=>{
+    setPlan(prev=>{
+      const diaNuevo = normalizeDiaPlan(prev[fechaKey], fechaKey);
+      diaNuevo[franjaId] = [...diaNuevo[franjaId], { recetaId, raciones: 1 }];
+      dbPutPlanDia(diaNuevo);
+      return { ...prev, [fechaKey]: diaNuevo };
+    });
+  },[]);
+
+  // Quita el elemento en la posición `index` de una franja de un día concreto
+  const removeFromPlanSlot = useCallback(async (fechaKey, franjaId, index)=>{
+    setPlan(prev=>{
+      const diaNuevo = normalizeDiaPlan(prev[fechaKey], fechaKey);
+      diaNuevo[franjaId] = diaNuevo[franjaId].filter((_,i)=>i!==index);
+      dbPutPlanDia(diaNuevo);
+      return { ...prev, [fechaKey]: diaNuevo };
+    });
+  },[]);
+
+  // Cambia el número de raciones consumidas de un elemento ya añadido (mínimo 1)
+  const updatePlanSlotRaciones = useCallback(async (fechaKey, franjaId, index, nuevasRaciones)=>{
+    setPlan(prev=>{
+      const diaNuevo = normalizeDiaPlan(prev[fechaKey], fechaKey);
+      diaNuevo[franjaId] = diaNuevo[franjaId].map((item,i)=>
+        i===index ? { ...item, raciones: Math.max(1, nuevasRaciones) } : item
+      );
+      dbPutPlanDia(diaNuevo);
+      return { ...prev, [fechaKey]: diaNuevo };
+    });
+  },[]);
+
+  // Guarda un ajuste de ingredientes (cantidades distintas) SOLO para ese elemento de ese día,
+  // sin modificar la receta original. Pasar null en ingredientesOverride para quitar el ajuste.
+  const updatePlanItemIngredientes = useCallback(async (fechaKey, franjaId, index, ingredientesOverride)=>{
+    setPlan(prev=>{
+      const diaNuevo = normalizeDiaPlan(prev[fechaKey], fechaKey);
+      diaNuevo[franjaId] = diaNuevo[franjaId].map((item,i)=>{
+        if(i!==index) return item;
+        if(ingredientesOverride===null){
+          const { ingredientesOverride: _omit, ...rest } = item;
+          return rest;
+        }
+        return { ...item, ingredientesOverride };
+      });
+      dbPutPlanDia(diaNuevo);
+      return { ...prev, [fechaKey]: diaNuevo };
+    });
+  },[]);
+
+  const saveRecipe = async (recipe)=>{
+    const toSave = { ...recipe, creadoEn: recipe.creadoEn || Date.now() };
+    await dbPut(toSave);
+    setRecetas(prev=>{
+      const exists = prev.some(r=>r.id===toSave.id);
+      const next = exists ? prev.map(r=>r.id===toSave.id?toSave:r) : [toSave, ...prev];
+      return next.sort((a,b)=>(b.creadoEn||0)-(a.creadoEn||0));
+    });
+    showToast(recipe._isNew ? "Receta guardada" : "Cambios guardados");
+    setView({screen:"detail", id: toSave.id});
+  };
+
+  // Crea un "extra" rápido (ej. un plátano, un yogur) como receta de un solo ingrediente,
+  // sin navegar a su detalle, para usarlo directamente desde el calendario.
+  const createQuickExtra = useCallback(async (nombre, kcalTotal)=>{
+    const id = uid();
+    const nuevaReceta = {
+      id,
+      titulo: nombre.trim(),
+      descripcion: "",
+      categoria: "snack",
+      tiempo: null,
+      porciones: 1,
+      ingredientes: [{ id: uid(), nombre: nombre.trim(), cantidad:"1", unidad:"ud", kcalTotal: kcalTotal.toString(), kcalMode:"manual", kcal100:"" }],
+      pasos: [],
+      notas: "",
+      destacada: false,
+      esExtraRapido: true,
+      creadoEn: Date.now(),
+    };
+    await dbPut(nuevaReceta);
+    setRecetas(prev=> [nuevaReceta, ...prev].sort((a,b)=>(b.creadoEn||0)-(a.creadoEn||0)));
+    return id;
+  },[]);
+
+  const deleteRecipe = async (id)=>{
+    await dbDelete(id);
+    setRecetas(prev=>prev.filter(r=>r.id!==id));
+    showToast("Receta eliminada");
+    setView({screen:"list"});
+  };
+
+  const filtered = recetas.filter(r=>{
+    if(filtro!=="todas" && r.categoria!==filtro) return false;
+    if(search.trim()){
+      const s = search.toLowerCase();
+      const inTitle = r.titulo.toLowerCase().includes(s);
+      const inIng = (r.ingredientes||[]).some(i=>i.nombre.toLowerCase().includes(s));
+      if(!inTitle && !inIng) return false;
+    }
+    return true;
+  });
+
+  if(!loaded){
+    return <div style={{display:'flex',height:'100vh',alignItems:'center',justifyContent:'center',color:'#9b9182'}}>Cargando recetario…</div>;
+  }
+
+  return (
+    <React.Fragment>
+      {tab==="recetario" && (
+        <React.Fragment>
+          <div className="topbar">
+            <div className="brand">
+              {filtro!==null && (
+                <button className="back-btn" onClick={()=>{ setFiltro(null); setSearch(""); }} aria-label="Volver a categorías">‹</button>
+              )}
+              <div className="stamp">R</div>
+              <h1 className="serif">Mi Recetario</h1>
+            </div>
+          </div>
+
+          <main>
+            <div className="search-wrap">
+              <span className="search-icon">⌕</span>
+              <input
+                placeholder="Buscar receta o ingrediente…"
+                value={search}
+                onChange={e=>{
+                  setSearch(e.target.value);
+                  if(e.target.value.trim() && filtro===null) setFiltro("todas");
+                }}
+              />
+            </div>
+
+            {filtro===null ? (
+              <React.Fragment>
+                <div className="cat-grid">
+                  {CATEGORIAS.map(c=>{
+                    const count = recetas.filter(r=>r.categoria===c.id).length;
+                    return (
+                      <div key={c.id} className={"cat-card cat-"+c.id} onClick={()=>setFiltro(c.id)}>
+                        <span className="cat-card-icon">
+                          {c.icon}{c.iconExtra && <span className="cat-card-icon-extra">{c.iconExtra}</span>}
+                        </span>
+                        <span className="cat-card-label">{c.label}</span>
+                        <span className="cat-card-count">{count} {count===1?'receta':'recetas'}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+                <button className="ver-todas-btn" onClick={()=>setFiltro("todas")}>Ver todas las recetas</button>
+              </React.Fragment>
+            ) : (
+              <React.Fragment>
+                {filtro==="todas" ? (
+                  <div className="filters">
+                    <button className="chip active" onClick={()=>setFiltro("todas")}>Todas</button>
+                    {CATEGORIAS.map(c=>(
+                      <button key={c.id} className="chip" onClick={()=>setFiltro(c.id)}>
+                        {c.icon} {c.label}
+                      </button>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="list-category-title">
+                    <span className="list-category-icon">{catIcon(filtro)}</span>
+                    <h2>{catLabel(filtro)}</h2>
+                  </div>
+                )}
+
+                {filtered.length===0 ? (
+                  <div className="empty">
+                    <div className="stamp serif">{filtro!=="todas" ? catIcon(filtro) : "R"}</div>
+                    <h3>
+                      {recetas.length===0
+                        ? "Tu recetario está vacío"
+                        : search.trim()
+                          ? "No hay coincidencias"
+                          : (filtro!=="todas" ? `Sin recetas en ${catLabel(filtro).toLowerCase()}` : "No hay coincidencias")}
+                    </h3>
+                    <p>
+                      {recetas.length===0
+                        ? "Toca el botón + para añadir tu primera receta."
+                        : search.trim()
+                          ? "Prueba con otra búsqueda o categoría."
+                          : `Toca el botón + para añadir tu primera receta de ${catLabel(filtro).toLowerCase()}.`}
+                    </p>
+                  </div>
+                ) : (
+                  <div className="card-list">
+                    {filtered.map(r=>{
+                      const servingsBase = r.porciones || 1;
+                      const totalKcal = calcTotalKcalBase(r.ingredientes||[]);
+                      const kcalPerServing = servingsBase ? Math.round(totalKcal/servingsBase) : 0;
+                      return (
+                        <div key={r.id} className="recipe-card" onClick={()=>setView({screen:"detail", id:r.id})}>
+                          {r.destacada && <span className="tab">Favorita</span>}
+                          <div className="stamp-sm">{catIcon(r.categoria)}</div>
+                          <div className="info">
+                            <h3>{r.titulo}</h3>
+                            <div className="meta-row">
+                              <span>⏱ {r.tiempo || '—'} min</span>
+                              <span>◷ {servingsBase} porc.</span>
+                              <span>{catLabel(r.categoria)}</span>
+                            </div>
+                          </div>
+                          {kcalPerServing>0 && <div className="kcal-badge">{kcalPerServing} kcal</div>}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </React.Fragment>
+            )}
+          </main>
+
+          <button className="fab" onClick={()=>setView({screen:"form", id:null, categoriaInicial: (filtro && filtro!=="todas") ? filtro : "comida"})} aria-label="Añadir receta">+</button>
+        </React.Fragment>
+      )}
+
+      {tab==="calendario" && (
+        <CalendarScreen
+          recetas={recetas}
+          plan={plan}
+          alimentosPersonales={alimentosPersonales}
+          objetivoKcal={objetivoKcal}
+          onAddToSlot={addToPlanSlot}
+          onRemoveFromSlot={removeFromPlanSlot}
+          onUpdateRaciones={updatePlanSlotRaciones}
+          onUpdateIngredientes={updatePlanItemIngredientes}
+          onCreateQuickExtra={createQuickExtra}
+          onSaveAlimentoPersonal={saveAlimentoPersonal}
+        />
+      )}
+
+      {tab==="estadisticas" && (
+        <StatsScreen recetas={recetas} plan={plan} objetivoKcal={objetivoKcal} onUpdateObjetivoKcal={updateObjetivoKcal} />
+      )}
+
+      <nav className="bottom-nav">
+        <button className={"bottom-nav-item"+(tab==="recetario"?" active":"")} onClick={()=>setTab("recetario")}>
+          <span className="bottom-nav-icon">📖</span>
+          <span>Recetario</span>
+        </button>
+        <button className={"bottom-nav-item"+(tab==="calendario"?" active":"")} onClick={()=>setTab("calendario")}>
+          <span className="bottom-nav-icon">📅</span>
+          <span>Calendario</span>
+        </button>
+        <button className={"bottom-nav-item"+(tab==="estadisticas"?" active":"")} onClick={()=>setTab("estadisticas")}>
+          <span className="bottom-nav-icon">📊</span>
+          <span>Estadísticas</span>
+        </button>
+      </nav>
+
+      {view.screen==="detail" && (
+        <DetailScreen
+          recipe={recetas.find(r=>r.id===view.id)}
+          onClose={()=>setView({screen:"list"})}
+          onEdit={(id)=>setView({screen:"form", id})}
+          onDelete={deleteRecipe}
+        />
+      )}
+
+      {view.screen==="form" && (
+        <FormScreen
+          recipe={view.id ? recetas.find(r=>r.id===view.id) : null}
+          categoriaInicial={view.categoriaInicial}
+          onClose={()=> view.id ? setView({screen:"detail", id:view.id}) : setView({screen:"list"})}
+          onSave={saveRecipe}
+          alimentosPersonales={alimentosPersonales}
+          onSaveAlimentoPersonal={saveAlimentoPersonal}
+        />
+      )}
+
+      <div className={"toast"+(toast?" show":"")}>{toast}</div>
+    </React.Fragment>
+  );
+}
+
+// ---------- Detail screen ----------
+function DetailScreen({ recipe, onClose, onEdit, onDelete }){
+  const baseServings = recipe ? (recipe.porciones||1) : 1;
+  const [servings, setServings] = useState(baseServings);
+
+  useEffect(()=>{ setServings(baseServings); }, [recipe && recipe.id]);
+
+  if(!recipe) return null;
+
+  const ingredientes = recipe.ingredientes || [];
+  const totalKcalBase = calcTotalKcalBase(ingredientes);
+  const totalKcalNow = totalKcalBase * (servings/baseServings);
+  const kcalPerServing = Math.round(totalKcalNow/servings) || 0;
+
+  const confirmDelete = ()=>{
+    if(window.confirm(`¿Eliminar "${recipe.titulo}"? Esta acción no se puede deshacer.`)){
+      onDelete(recipe.id);
+    }
+  };
+
+  return (
+    <div className="screen">
+      <div className="screen-top">
+        <button className="link-btn" onClick={onClose}>‹ Recetario</button>
+        <button className="link-btn" onClick={()=>onEdit(recipe.id)}>Editar</button>
+      </div>
+      <div className="screen-body">
+        <span className="hero-tag">{catIcon(recipe.categoria)} {catLabel(recipe.categoria)}</span>
+        <h2 className="hero-title serif">{recipe.titulo}</h2>
+        {recipe.descripcion && <p style={{color:'#6b6357', fontSize:15, lineHeight:1.5}}>{recipe.descripcion}</p>}
+
+        <div className="stat-row">
+          <div className="stat-box">
+            <div className="num">{recipe.tiempo || '—'}</div>
+            <div className="lbl">Minutos</div>
+          </div>
+          <div className="stat-box">
+            <div className="num kcal">{kcalPerServing || '—'}</div>
+            <div className="lbl">Kcal / porción</div>
+          </div>
+          <div className="stat-box">
+            <div className="num">{Math.round(totalKcalNow) || '—'}</div>
+            <div className="lbl">Kcal totales</div>
+          </div>
+        </div>
+
+        <div className="portion-control">
+          <button onClick={()=>setServings(s=>Math.max(1, s-1))}>−</button>
+          <div className="portion-num">{servings}<small>porciones</small></div>
+          <button onClick={()=>setServings(s=>s+1)}>+</button>
+        </div>
+
+        <div className="section-label">Ingredientes</div>
+        {ingredientes.length===0 ? (
+          <p style={{color:'#9b9182', fontSize:14}}>Sin ingredientes añadidos.</p>
+        ) : ingredientes.map((ing,i)=>{
+          const scaledQty = scaleQty(ing.cantidad, baseServings, servings);
+          const scaledKcal = ing.kcalTotal ? round1(parseFloat(ing.kcalTotal) * (servings/baseServings)) : null;
+          return (
+            <div className="ingredient-row" key={i}>
+              <span className="name">{ing.nombre}</span>
+              <span className="qty">
+                {fmtQty(scaledQty)} {ing.unidad}
+                {scaledKcal!==null && <span className="qty-kcal">{Math.round(scaledKcal)} kcal</span>}
+              </span>
+            </div>
+          );
+        })}
+
+        {(recipe.pasos||[]).length>0 && (
+          <React.Fragment>
+            <div className="section-label">Preparación</div>
+            {recipe.pasos.map((p,i)=>(
+              <div className="step-row" key={i}>
+                <div className="step-num serif">{i+1}</div>
+                <div className="step-text">{p}</div>
+              </div>
+            ))}
+          </React.Fragment>
+        )}
+
+        {recipe.notas && (
+          <React.Fragment>
+            <div className="section-label">Notas</div>
+            <div className="notes-box">{recipe.notas}</div>
+          </React.Fragment>
+        )}
+
+        <div style={{marginTop:36, textAlign:'center'}}>
+          <button className="link-btn danger" onClick={confirmDelete}>Eliminar receta</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ---------- Calendario de planificación ----------
+function CalendarScreen({ recetas, plan, alimentosPersonales, objetivoKcal, onAddToSlot, onRemoveFromSlot, onUpdateRaciones, onUpdateIngredientes, onCreateQuickExtra, onSaveAlimentoPersonal }){
+  const today = new Date();
+  const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+  const [cursor, setCursor] = useState(new Date(today.getFullYear(), today.getMonth(), 1));
+  const [selectedDay, setSelectedDay] = useState(null); // Date | null
+
+  const recetaById = (id)=> recetas.find(r=>r.id===id);
+
+  // normaliza una franja a array de {recetaId, raciones} (compatibilidad con formatos antiguos: id suelto)
+  const franjaList = (dia, franjaId)=>{
+    if(!dia) return [];
+    const val = dia[franjaId];
+    let lista = [];
+    if(Array.isArray(val)) lista = val;
+    else if(val) lista = [val];
+    return lista.map(item => (typeof item === 'string') ? { recetaId: item, raciones: 1 } : item);
+  };
+  // kcal de un elemento concreto de una franja. Si tiene ingredientesOverride (ajuste manual
+  // de cantidades para ese día), se calculan las kcal directamente de esos ingredientes y no
+  // se multiplica por raciones (el ajuste ya representa la cantidad real consumida esa vez).
+  const kcalDeItem = (item)=>{
+    const receta = recetaById(item.recetaId);
+    if(!receta) return 0;
+    if(item.ingredientesOverride){
+      return calcTotalKcalBase(item.ingredientesOverride);
+    }
+    return kcalPorPorcion(receta) * (item.raciones || 1);
+  };
+
+  // kcal totales planificadas para un día (suma de todos los elementos de las 4 franjas)
+  const kcalDelDia = (fechaKey)=>{
+    const dia = plan[fechaKey];
+    if(!dia) return 0;
+    return FRANJAS.reduce((sum,f)=>{
+      const items = franjaList(dia, f.id);
+      return sum + items.reduce((s,item)=> s + kcalDeItem(item), 0);
+    }, 0);
+  };
+  const elementosDelDia = (fechaKey)=>{
+    const dia = plan[fechaKey];
+    if(!dia) return 0;
+    return FRANJAS.reduce((sum,f)=> sum + franjaList(dia,f.id).length, 0);
+  };
+
+  // color según el objetivo de kcal: "verde" (<=objetivo), "ambar" (hasta +5%), "rojo" (más allá)
+  // null si no hay objetivo definido o el día no tiene nada planificado
+  const colorObjetivo = (fechaKey)=>{
+    if(!objetivoKcal || elementosDelDia(fechaKey)===0) return null;
+    const kcal = kcalDelDia(fechaKey);
+    if(kcal <= objetivoKcal) return "verde";
+    if(kcal <= objetivoKcal*1.05) return "ambar";
+    return "rojo";
+  };
+
+  // --- construir cuadrícula del mes (lunes a domingo), agrupada en semanas ---
+  const year = cursor.getFullYear();
+  const month = cursor.getMonth();
+  const firstOfMonth = new Date(year, month, 1);
+  const startWeekday = (firstOfMonth.getDay()+6)%7; // 0=lunes
+  const daysInMonth = new Date(year, month+1, 0).getDate();
+  const gridDays = [];
+  for(let i=0;i<startWeekday;i++){
+    const d = new Date(year, month, 1-(startWeekday-i));
+    gridDays.push({ date:d, otherMonth:true });
+  }
+  for(let d=1; d<=daysInMonth; d++){
+    gridDays.push({ date:new Date(year,month,d), otherMonth:false });
+  }
+  while(gridDays.length % 7 !== 0){
+    const last = gridDays[gridDays.length-1].date;
+    const d = new Date(last);
+    d.setDate(d.getDate()+1);
+    gridDays.push({ date:d, otherMonth:true });
+  }
+
+  // --- promedio mensual (mes en curso real, no el navegado) ---
+  const calcPromedio = (fechas)=>{
+    const dias = fechas.filter(key => elementosDelDia(key)>0);
+    if(dias.length===0) return 0;
+    const total = dias.reduce((sum,key)=> sum + kcalDelDia(key), 0);
+    return Math.round(total/dias.length);
+  };
+  const diasEnMesActual = new Date(today.getFullYear(), today.getMonth()+1, 0).getDate();
+  const mesKeys = Array.from({length:diasEnMesActual}, (_,i)=> fechaToKey(new Date(today.getFullYear(), today.getMonth(), i+1)));
+  const promedioMensual = calcPromedio(mesKeys);
+
+  return (
+    <React.Fragment>
+      <div className="topbar">
+        <div className="brand">
+          <div className="stamp">📅</div>
+          <h1 className="serif">Planificador</h1>
+        </div>
+      </div>
+
+      <div className="cal-main">
+        <div className="cal-header">
+          <button className="cal-nav-btn" onClick={()=>setCursor(new Date(year, month-1, 1))} aria-label="Mes anterior">‹</button>
+          <h2 className="serif">{MESES[month]} {year}</h2>
+          <button className="cal-nav-btn" onClick={()=>setCursor(new Date(year, month+1, 1))} aria-label="Mes siguiente">›</button>
+        </div>
+        <button className="cal-today-btn" onClick={()=>setCursor(new Date(today.getFullYear(), today.getMonth(), 1))}>Ir a hoy</button>
+
+        <div className="cal-summary-row">
+          <div className="cal-summary-box">
+            <div className="num">{promedioMensual || '—'}</div>
+            <div className="lbl">Media diaria del mes</div>
+          </div>
+        </div>
+
+        <div className="cal-weekdays">
+          {DIAS_SEMANA.map(d=> <span key={d}>{d}</span>)}
+        </div>
+        <div className="cal-grid">
+          {gridDays.map((gd,idx)=>{
+            const key = fechaToKey(gd.date);
+            const kcal = Math.round(kcalDelDia(key));
+            const numElementos = elementosDelDia(key);
+            const isToday = isSameDay(gd.date, today);
+            const isPast = gd.date < todayStart && !isToday;
+            const colorObj = colorObjetivo(key);
+            return (
+              <div
+                key={idx}
+                className={"cal-day"+(gd.otherMonth?" other-month":"")+(isPast?" past":"")+(colorObj?" obj-"+colorObj:"")}
+                onClick={()=>setSelectedDay(gd.date)}
+              >
+                {isToday && <span className="today-mark" aria-label="Hoy"></span>}
+                <span className="daynum">{gd.date.getDate()}</span>
+                {kcal>0 && <span className="daykcal">{kcal}</span>}
+                {numElementos>0 && (
+                  <div className="daydots">
+                    {Array.from({length:Math.min(numElementos,4)}).map((_,i)=><span key={i} className="daydot"></span>)}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {selectedDay && (
+        <DayPanel
+          date={selectedDay}
+          plan={plan[fechaToKey(selectedDay)]}
+          recetaById={recetaById}
+          recetas={recetas}
+          alimentosPersonales={alimentosPersonales}
+          franjaList={franjaList}
+          kcalDeItem={kcalDeItem}
+          onClose={()=>setSelectedDay(null)}
+          onAdd={(franjaId, recetaId)=> onAddToSlot(fechaToKey(selectedDay), franjaId, recetaId)}
+          onRemove={(franjaId, index)=> onRemoveFromSlot(fechaToKey(selectedDay), franjaId, index)}
+          onUpdateRaciones={(franjaId, index, raciones)=> onUpdateRaciones(fechaToKey(selectedDay), franjaId, index, raciones)}
+          onUpdateIngredientes={(franjaId, index, ingredientesOverride)=> onUpdateIngredientes(fechaToKey(selectedDay), franjaId, index, ingredientesOverride)}
+          onCreateQuickExtra={onCreateQuickExtra}
+          onSaveAlimentoPersonal={onSaveAlimentoPersonal}
+        />
+      )}
+    </React.Fragment>
+  );
+}
+
+function DayPanel({ date, plan, recetaById, recetas, alimentosPersonales, franjaList, kcalDeItem, onClose, onAdd, onRemove, onUpdateRaciones, onUpdateIngredientes, onCreateQuickExtra, onSaveAlimentoPersonal }){
+  const [pickerFor, setPickerFor] = useState(null); // franjaId | null
+  const [editingItem, setEditingItem] = useState(null); // { franjaId, index, item, receta } | null
+
+  const dia = plan || {};
+  const total = FRANJAS.reduce((sum,f)=>{
+    const items = franjaList(dia, f.id);
+    return sum + items.reduce((s,item)=> s + kcalDeItem(item), 0);
+  }, 0);
+
+  const fechaLabel = date.toLocaleDateString('es-ES', { weekday:'long', day:'numeric', month:'long' });
+
+  return (
+    <div className="day-panel-overlay" onClick={onClose}>
+      <div className="day-panel" onClick={e=>e.stopPropagation()}>
+        <div className="day-panel-handle"></div>
+        <h3 className="serif">{fechaLabel}</h3>
+        <div className="day-total">{total>0 ? `${Math.round(total)} kcal planificadas` : 'Sin recetas planificadas'}</div>
+
+        {FRANJAS.map(f=>{
+          const items = franjaList(dia, f.id);
+          return (
+            <div className="franja-block" key={f.id}>
+              <div className="franja-label">{f.icon} {f.label}</div>
+              {items.map((item, idx)=>{
+                const receta = recetaById(item.recetaId);
+                if(!receta) return null;
+                const raciones = item.raciones || 1;
+                const kcalItem = Math.round(kcalDeItem(item));
+                const ajustado = !!item.ingredientesOverride;
+                const tieneIngredientes = (receta.ingredientes||[]).length>0;
+                return (
+                  <div className="franja-slot raciones-slot" key={idx} style={{marginBottom:6}}>
+                    <div className="slot-top-line">
+                      <span className="slot-recipe-name">
+                        {receta.titulo}
+                        {ajustado && <span className="ajustado-badge">Ajustado hoy</span>}
+                      </span>
+                      <div className="slot-top-actions">
+                        {tieneIngredientes && (
+                          <button
+                            className="slot-edit"
+                            onClick={()=>setEditingItem({ franjaId:f.id, index:idx, item, receta })}
+                            aria-label="Editar cantidades para este día"
+                          >✎</button>
+                        )}
+                        <button className="slot-remove" onClick={()=>onRemove(f.id, idx)} aria-label="Quitar">×</button>
+                      </div>
+                    </div>
+                    <div className="slot-bottom-line">
+                      {ajustado ? (
+                        <button className="link-btn" style={{fontSize:12.5, padding:'2px 0'}} onClick={()=>onUpdateIngredientes(f.id, idx, null)}>
+                          Quitar ajuste
+                        </button>
+                      ) : (
+                        <div className="raciones-control">
+                          <button onClick={()=>onUpdateRaciones(f.id, idx, raciones-1)} disabled={raciones<=1} aria-label="Menos raciones">−</button>
+                          <span className="raciones-num">{raciones} {raciones===1 ? 'ración' : 'raciones'}</span>
+                          <button onClick={()=>onUpdateRaciones(f.id, idx, raciones+1)} aria-label="Más raciones">+</button>
+                        </div>
+                      )}
+                      <span className="slot-kcal">{kcalItem} kcal</span>
+                    </div>
+                  </div>
+                );
+              })}
+              <div className="franja-slot empty" onClick={()=>setPickerFor(f.id)}>
+                + Añadir {items.length>0 ? 'otro' : ''}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {pickerFor && (
+        <RecipePicker
+          recetas={recetas}
+          alimentosPersonales={alimentosPersonales}
+          franjaLabel={FRANJAS.find(f=>f.id===pickerFor).label}
+          onSelect={(recetaId)=>{ onAdd(pickerFor, recetaId); setPickerFor(null); }}
+          onCreateQuickExtra={async (nombre, kcal)=>{
+            const newId = await onCreateQuickExtra(nombre, kcal);
+            onAdd(pickerFor, newId);
+            setPickerFor(null);
+          }}
+          onClose={()=>setPickerFor(null)}
+        />
+      )}
+
+      {editingItem && (
+        <FormScreen
+          recipe={{
+            ...editingItem.receta,
+            ingredientes: editingItem.item.ingredientesOverride || editingItem.receta.ingredientes || [],
+          }}
+          dayEditMode={true}
+          originalIngredientes={editingItem.receta.ingredientes || []}
+          alimentosPersonales={alimentosPersonales}
+          onSaveAlimentoPersonal={onSaveAlimentoPersonal}
+          onSave={(ingredientesAjustados)=>{
+            onUpdateIngredientes(editingItem.franjaId, editingItem.index, ingredientesAjustados);
+            setEditingItem(null);
+          }}
+          onClose={()=>setEditingItem(null)}
+        />
+      )}
+    </div>
+  );
+}
+
+function RecipePicker({ recetas, alimentosPersonales, franjaLabel, onSelect, onCreateQuickExtra, onClose }){
+  const [search, setSearch] = useState("");
+  const [showExtraForm, setShowExtraForm] = useState(false);
+  const [extraNombre, setExtraNombre] = useState("");
+  const [extraSuggestions, setExtraSuggestions] = useState([]);
+  const [extraSuggestOpen, setExtraSuggestOpen] = useState(false);
+  // matched: alimento encontrado en la tabla {kcal100, pesoUnidad} | null si modo 100% manual
+  const [matched, setMatched] = useState(null);
+  const [extraPeso, setExtraPeso] = useState(""); // gramos, usado cuando matched existe
+  const [extraKcalManual, setExtraKcalManual] = useState(""); // kcal totales, usado cuando NO hay match
+
+  const filtered = recetas.filter(r=> r.titulo.toLowerCase().includes(search.toLowerCase()));
+
+  const handleNombreChange = (val)=>{
+    setExtraNombre(val);
+    setMatched(null);
+    const matches = suggestFoods(val, alimentosPersonales, 5);
+    setExtraSuggestions(matches);
+    setExtraSuggestOpen(matches.length>0);
+  };
+
+  const handleSelectSuggestion = (s)=>{
+    setExtraNombre(s.nombre);
+    setMatched(s);
+    setExtraPeso(s.pesoUnidad ? s.pesoUnidad.toString() : "100");
+    setExtraSuggestOpen(false);
+  };
+
+  const kcalCalculadas = matched ? Math.round((matched.kcal100/100) * (parseFloat(extraPeso)||0)) : null;
+  const kcalFinal = matched ? kcalCalculadas : parseFloat(extraKcalManual);
+  const canCreateExtra = extraNombre.trim() && !isNaN(kcalFinal) && kcalFinal>0;
+
+  const handleCreateExtra = ()=>{
+    if(!canCreateExtra) return;
+    onCreateQuickExtra(extraNombre.trim(), kcalFinal);
+  };
+
+  return (
+    <div className="recipe-picker-overlay" onClick={onClose}>
+      <div className="recipe-picker" onClick={e=>e.stopPropagation()}>
+        <h3>Añadir a {franjaLabel.toLowerCase()}</h3>
+
+        {!showExtraForm ? (
+          <React.Fragment>
+            <div className="search-wrap" style={{marginBottom:14}}>
+              <span className="search-icon">⌕</span>
+              <input placeholder="Buscar receta…" value={search} onChange={e=>setSearch(e.target.value)} autoFocus />
+            </div>
+            <button className="quick-extra-btn" onClick={()=>setShowExtraForm(true)}>
+              + Añadir algo suelto (plátano, yogur…)
+            </button>
+            {filtered.length===0 ? (
+              <div className="recipe-picker-empty">
+                {recetas.length===0 ? "Aún no tienes recetas guardadas." : "No hay recetas que coincidan."}
+              </div>
+            ) : filtered.map(r=>(
+              <div className="recipe-picker-item" key={r.id} onClick={()=>onSelect(r.id)}>
+                <div className="stamp-sm">{catIcon(r.categoria)}</div>
+                <span className="name">{r.titulo}</span>
+                <span className="kcal">{Math.round(kcalPorPorcion(r))} kcal</span>
+              </div>
+            ))}
+          </React.Fragment>
+        ) : (
+          <div className="quick-extra-form">
+            <div className="field" style={{position:'relative'}}>
+              <label>Nombre</label>
+              <input
+                placeholder="Ej. Plátano, yogur natural…"
+                value={extraNombre}
+                autoComplete="off"
+                onChange={e=>handleNombreChange(e.target.value)}
+                onFocus={()=>{ if(extraSuggestions.length>0) setExtraSuggestOpen(true); }}
+                onBlur={()=> setTimeout(()=>setExtraSuggestOpen(false), 150)}
+                autoFocus
+              />
+              {extraSuggestOpen && (
+                <div className="suggest-dropdown">
+                  {extraSuggestions.map((s,idx)=>(
+                    <div key={idx} className="suggest-item" onMouseDown={()=>handleSelectSuggestion(s)}>
+                      <span className="suggest-name">{s.nombre}</span>
+                      <span className="suggest-kcal">{s.kcal100} kcal/100{s.origen==="personal" ? " · tu tabla" : ""}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {matched ? (
+              <React.Fragment>
+                <div className="field">
+                  <label>Peso (g)</label>
+                  <input
+                    type="number" min="0" step="any"
+                    value={extraPeso}
+                    onChange={e=>setExtraPeso(e.target.value)}
+                  />
+                  {matched.pesoUnidad && (
+                    <p className="quick-extra-hint" style={{marginTop:6}}>
+                      Peso orientativo de una unidad mediana ({matched.pesoUnidad}g) — ajústalo si la tuya es más grande o pequeña.
+                    </p>
+                  )}
+                </div>
+                <div className="edit-total-row" style={{marginTop:0}}>
+                  <span>Total estimado</span>
+                  <span className="edit-total-kcal">{kcalCalculadas || 0} kcal</span>
+                </div>
+              </React.Fragment>
+            ) : (
+              <div className="field">
+                <label>Kcal totales</label>
+                <input placeholder="Ej. 95" type="number" min="0" step="any" value={extraKcalManual} onChange={e=>setExtraKcalManual(e.target.value)} />
+                {extraNombre.trim().length>=2 && (
+                  <p className="quick-extra-hint" style={{marginTop:6}}>
+                    No está en la tabla — escribe las kcal totales a mano.
+                  </p>
+                )}
+              </div>
+            )}
+
+            <p className="quick-extra-hint">Se guardará en tu recetario para poder reutilizarlo otro día.</p>
+            <div style={{display:'flex', gap:10}}>
+              <button className="link-btn" onClick={()=>setShowExtraForm(false)} style={{flex:1}}>Cancelar</button>
+              <button
+                className="quick-extra-confirm"
+                disabled={!canCreateExtra}
+                onClick={handleCreateExtra}
+              >
+                Añadir
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ---------- Ajuste de cantidades de una receta SOLO para un día/franja concreto ----------
+// ---------- Estadísticas ----------
+function StatsScreen({ recetas, plan, objetivoKcal, onUpdateObjetivoKcal }){
+  const today = new Date();
+  const todayKey = fechaToKey(today);
+  const recetaById = (id)=> recetas.find(r=>r.id===id);
+  const [objetivoInput, setObjetivoInput] = useState(objetivoKcal ? objetivoKcal.toString() : "");
+  const [editingObjetivo, setEditingObjetivo] = useState(!objetivoKcal);
+  const [franjasPage, setFranjasPage] = useState(0);
+  const franjasPagerRef = useRef(null);
+  const handleFranjasPagerScroll = ()=>{
+    const el = franjasPagerRef.current;
+    if(!el) return;
+    const page = Math.round(el.scrollLeft / el.clientWidth);
+    setFranjasPage(page);
+  };
+
+  const franjaList = (dia, franjaId)=>{
+    if(!dia) return [];
+    const val = dia[franjaId];
+    let lista = [];
+    if(Array.isArray(val)) lista = val;
+    else if(val) lista = [val];
+    return lista.map(item => (typeof item === 'string') ? { recetaId: item, raciones: 1 } : item);
+  };
+  const kcalDeItem = (item)=>{
+    const receta = recetaById(item.recetaId);
+    if(!receta) return 0;
+    if(item.ingredientesOverride){
+      return calcTotalKcalBase(item.ingredientesOverride);
+    }
+    return kcalPorPorcion(receta) * (item.raciones || 1);
+  };
+
+  const kcalDelDia = (fechaKey)=>{
+    const dia = plan[fechaKey];
+    if(!dia) return 0;
+    return FRANJAS.reduce((sum,f)=>{
+      const items = franjaList(dia, f.id);
+      return sum + items.reduce((s,item)=> s + kcalDeItem(item), 0);
+    }, 0);
+  };
+  const elementosDelDia = (fechaKey)=>{
+    const dia = plan[fechaKey];
+    if(!dia) return 0;
+    return FRANJAS.reduce((sum,f)=> sum + franjaList(dia,f.id).length, 0);
+  };
+  const calcPromedio = (fechas)=>{
+    const dias = fechas.filter(key => elementosDelDia(key)>0);
+    if(dias.length===0) return 0;
+    const total = dias.reduce((sum,key)=> sum + kcalDelDia(key), 0);
+    return Math.round(total/dias.length);
+  };
+
+  const kcalHoy = Math.round(kcalDelDia(todayKey));
+  const colorObjetivoHoy = (()=>{
+    if(!objetivoKcal || elementosDelDia(todayKey)===0) return null;
+    if(kcalHoy <= objetivoKcal) return "verde";
+    if(kcalHoy <= objetivoKcal*1.05) return "ambar";
+    return "rojo";
+  })();
+
+  const startOfWeek = new Date(today);
+  startOfWeek.setDate(today.getDate() - ((today.getDay()+6)%7));
+  const semanaKeys = Array.from({length:7}, (_,i)=>{
+    const d = new Date(startOfWeek); d.setDate(startOfWeek.getDate()+i);
+    return fechaToKey(d);
+  });
+  const promedioSemanal = calcPromedio(semanaKeys);
+
+  const diasEnMesActual = new Date(today.getFullYear(), today.getMonth()+1, 0).getDate();
+  const mesKeys = Array.from({length:diasEnMesActual}, (_,i)=> fechaToKey(new Date(today.getFullYear(), today.getMonth(), i+1)));
+  const promedioMensual = calcPromedio(mesKeys);
+
+  // --- kcal de HOY por franja (para la página 1 del carrusel) ---
+  const kcalPorFranjaEnDia = (dia, franjaId)=>{
+    return franjaList(dia, franjaId).reduce((sum,item)=> sum + kcalDeItem(item), 0);
+  };
+  const diaHoy = plan[todayKey];
+  const kcalHoyPorFranja = FRANJAS.map(f=>({
+    ...f,
+    valor: diaHoy ? Math.round(kcalPorFranjaEnDia(diaHoy, f.id)) : 0,
+  }));
+
+  // --- media de kcal por franja del MES ACTUAL (para la página 2 del carrusel) ---
+  const mediasPorFranja = FRANJAS.map(f=>{
+    const diasConDatosMes = mesKeys.filter(key => franjaList(plan[key], f.id).length>0);
+    if(diasConDatosMes.length===0) return { ...f, valor:0 };
+    const total = diasConDatosMes.reduce((sum,key)=> sum + kcalPorFranjaEnDia(plan[key], f.id), 0);
+    return { ...f, valor: Math.round(total/diasConDatosMes.length) };
+  });
+
+  // --- % de días en verde / ámbar / rojo respecto al objetivo, según el periodo elegido ---
+  const [periodoCumplimiento, setPeriodoCumplimiento] = useState("semana"); // semana | mes | 90dias
+  const diasEnPeriodo = (()=>{
+    const dias = periodoCumplimiento==="semana" ? 7 : periodoCumplimiento==="mes" ? 30 : 90;
+    return Array.from({length:dias}, (_,i)=>{
+      const d = new Date(today); d.setDate(today.getDate()-i);
+      return fechaToKey(d);
+    });
+  })();
+  const diasConPlanPeriodo = diasEnPeriodo.filter(key => elementosDelDia(key)>0);
+  let resumenObjetivo = null;
+  if(objetivoKcal && diasConPlanPeriodo.length>0){
+    let verde=0, ambar=0, rojo=0;
+    diasConPlanPeriodo.forEach(key=>{
+      const kcal = kcalDelDia(key);
+      if(kcal <= objetivoKcal) verde++;
+      else if(kcal <= objetivoKcal*1.05) ambar++;
+      else rojo++;
+    });
+    const total = diasConPlanPeriodo.length;
+    resumenObjetivo = {
+      verde: Math.round((verde/total)*100), verdeDias: verde,
+      ambar: Math.round((ambar/total)*100), ambarDias: ambar,
+      rojo: Math.round((rojo/total)*100), rojoDias: rojo,
+      totalDias: total,
+    };
+  }
+
+  const handleGuardarObjetivo = ()=>{
+    const val = parseInt(objetivoInput);
+    if(!isNaN(val) && val>0){
+      onUpdateObjetivoKcal(val);
+      setEditingObjetivo(false);
+    }
+  };
+
+  return (
+    <React.Fragment>
+      <div className="topbar">
+        <div className="brand">
+          <div className="stamp">📊</div>
+          <h1 className="serif">Estadísticas</h1>
+        </div>
+      </div>
+
+      <main>
+        <div className="section-label" style={{marginTop:0}}>Objetivo diario</div>
+        {editingObjetivo ? (
+          <div className="objetivo-edit-row">
+            <input
+              type="number" min="1" placeholder="Ej. 2000"
+              value={objetivoInput}
+              onChange={e=>setObjetivoInput(e.target.value)}
+              autoFocus
+            />
+            <span className="objetivo-unit">kcal/día</span>
+            <button className="objetivo-save-btn" disabled={!objetivoInput || isNaN(parseInt(objetivoInput))} onClick={handleGuardarObjetivo}>Guardar</button>
+          </div>
+        ) : (
+          <div className="objetivo-display-row">
+            <span className="objetivo-display-num">{objetivoKcal} kcal/día</span>
+            <button className="link-btn" onClick={()=>{ setObjetivoInput(objetivoKcal.toString()); setEditingObjetivo(true); }}>Editar</button>
+          </div>
+        )}
+
+        {resumenObjetivo && (
+          <div className="cumplimiento-compact">
+            <div className="cumplimiento-compact-header">
+              <span className="cumplimiento-compact-title">Cumplimiento</span>
+              <select
+                className="cumplimiento-periodo-select"
+                value={periodoCumplimiento}
+                onChange={e=>setPeriodoCumplimiento(e.target.value)}
+              >
+                <option value="semana">Última semana</option>
+                <option value="mes">Último mes</option>
+                <option value="90dias">Últimos 90 días</option>
+              </select>
+            </div>
+            <div className="objetivo-pct-row-compact">
+              <div className="objetivo-pct-box-compact objetivo-pct-verde">
+                <div className="objetivo-pct-num-compact">{resumenObjetivo.verde}%</div>
+                <div className="objetivo-pct-dias-compact">{resumenObjetivo.verdeDias} {resumenObjetivo.verdeDias===1?'día':'días'}</div>
+              </div>
+              <div className="objetivo-pct-box-compact objetivo-pct-ambar">
+                <div className="objetivo-pct-num-compact">{resumenObjetivo.ambar}%</div>
+                <div className="objetivo-pct-dias-compact">{resumenObjetivo.ambarDias} {resumenObjetivo.ambarDias===1?'día':'días'}</div>
+              </div>
+              <div className="objetivo-pct-box-compact objetivo-pct-rojo">
+                <div className="objetivo-pct-num-compact">{resumenObjetivo.rojo}%</div>
+                <div className="objetivo-pct-dias-compact">{resumenObjetivo.rojoDias} {resumenObjetivo.rojoDias===1?'día':'días'}</div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        <div className="section-label">Calorías planificadas</div>
+        <div className="stats-row">
+          <div className={"stats-box"+(colorObjetivoHoy?" obj-"+colorObjetivoHoy:"")}>
+            <div className="stats-num">{kcalHoy || '—'}</div>
+            <div className="stats-lbl">Hoy</div>
+          </div>
+          <div className="stats-box">
+            <div className="stats-num">{promedioSemanal || '—'}</div>
+            <div className="stats-lbl">Media / día<br/>esta semana</div>
+          </div>
+          <div className="stats-box">
+            <div className="stats-num">{promedioMensual || '—'}</div>
+            <div className="stats-lbl">Media / día<br/>este mes</div>
+          </div>
+        </div>
+
+        <div className="section-label">{franjasPage===0 ? "Hoy por franja" : "Media del mes por franja"}</div>
+        <div className="franjas-pager" ref={franjasPagerRef} onScroll={handleFranjasPagerScroll}>
+          <div className="franjas-page">
+            <div className="franja-stats-list">
+              {kcalHoyPorFranja.map(f=>{
+                const maxValor = Math.max(1, ...kcalHoyPorFranja.map(x=>x.valor||1));
+                return (
+                  <div className="franja-stats-item" key={f.id}>
+                    <span className="franja-stats-icon">{f.icon}</span>
+                    <span className="franja-stats-label">{f.label}</span>
+                    <div className="franja-stats-bar-wrap">
+                      <div className="franja-stats-bar" style={{width: (f.valor>0 ? Math.min(100, (f.valor/maxValor)*100) : 0)+'%'}}></div>
+                    </div>
+                    <span className="franja-stats-num">{f.valor>0 ? `${f.valor} kcal` : '—'}</span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+          <div className="franjas-page">
+            <div className="franja-stats-list">
+              {mediasPorFranja.map(f=>{
+                const maxValor = Math.max(1, ...mediasPorFranja.map(x=>x.valor||1));
+                return (
+                  <div className="franja-stats-item" key={f.id}>
+                    <span className="franja-stats-icon">{f.icon}</span>
+                    <span className="franja-stats-label">{f.label}</span>
+                    <div className="franja-stats-bar-wrap">
+                      <div className="franja-stats-bar" style={{width: (f.valor>0 ? Math.min(100, (f.valor/maxValor)*100) : 0)+'%'}}></div>
+                    </div>
+                    <span className="franja-stats-num">{f.valor>0 ? `${f.valor} kcal` : '—'}</span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+        <div className="franjas-pager-dots">
+          <span className={"franjas-dot"+(franjasPage===0?" active":"")}></span>
+          <span className={"franjas-dot"+(franjasPage===1?" active":"")}></span>
+        </div>
+      </main>
+    </React.Fragment>
+  );
+}
+
+// ---------- Form screen (create/edit) ----------
+function emptyIngredient(){
+  return { id: uid(), nombre:"", cantidad:"", unidad:"g", kcalTotal:"", kcalMode:"", kcal100:"" };
+}
+// recalcula kcalTotal a partir de kcal100, cantidad y unidad (regla de tres simple)
+function calcKcalTotalFromBase(kcal100, cantidad, unidad){
+  const base = parseFloat(kcal100);
+  const qty = parseFloat(cantidad);
+  if(isNaN(base) || isNaN(qty) || qty<=0) return "";
+  if(!UNIDADES_PROPORCIONALES.includes(unidad)) return ""; // no convertible por 100, ver kcal directa
+  const factor = (unidad==="kg" || unidad==="l") ? 1000 : 1; // kg/l equivalen a 1000 veces la base de 100g/100ml
+  return round1((base/100) * qty * factor).toString();
+}
+
+function FormScreen({ recipe, categoriaInicial, onClose, onSave, alimentosPersonales, onSaveAlimentoPersonal, dayEditMode, originalIngredientes }){
+  const isEdit = !!recipe;
+  const [titulo, setTitulo] = useState(recipe? recipe.titulo : "");
+  const [descripcion, setDescripcion] = useState(recipe? (recipe.descripcion||"") : "");
+  const [categoria, setCategoria] = useState(recipe? recipe.categoria : (categoriaInicial || "comida"));
+  const [tiempo, setTiempo] = useState(recipe? (recipe.tiempo||"") : "");
+  const [porciones, setPorciones] = useState(recipe? (recipe.porciones||"") : "");
+  const [ingredientes, setIngredientes] = useState(
+    recipe && recipe.ingredientes && recipe.ingredientes.length
+      ? recipe.ingredientes.map(i=>({
+          ...i,
+          id: i.id||uid(),
+          lookupStatus: i.kcal100 ? "found" : ""
+        }))
+      : [emptyIngredient()]
+  );
+  const [pasos, setPasos] = useState(recipe && recipe.pasos && recipe.pasos.length ? [...recipe.pasos] : [""]);
+  const [notas, setNotas] = useState(recipe? (recipe.notas||"") : "");
+  const [destacada, setDestacada] = useState(recipe? !!recipe.destacada : false);
+  const [suggestOpenFor, setSuggestOpenFor] = useState(null); // id del ingrediente con sugerencias abiertas
+  const [suggestions, setSuggestions] = useState([]);
+  const [manualKcalOpenFor, setManualKcalOpenFor] = useState({}); // { [ingId]: true } — campo manual revelado
+
+  const porcionesValidas = parseInt(porciones)>=1;
+  const canSave = titulo.trim().length>0 && porcionesValidas;
+
+  const [justAddedId, setJustAddedId] = useState(null);
+
+  const updateIngredient = (id, patch)=>{
+    setIngredientes(prev=>prev.map(ing=> ing.id===id ? {...ing, ...patch} : ing));
+  };
+  const removeIngredient = (id)=>{
+    setIngredientes(prev=>{
+      const next = prev.filter(ing=>ing.id!==id);
+      return next.length>0 ? next : [emptyIngredient()];
+    });
+  };
+  const addIngredient = ()=>{
+    const nuevo = emptyIngredient();
+    setIngredientes(prev=>[...prev, nuevo]);
+    setJustAddedId(nuevo.id);
+    setTimeout(()=>setJustAddedId(prev=> prev===nuevo.id ? null : prev), 1500);
+  };
+  const ingredientesConKcal = ingredientes.filter(i=>i.kcalTotal).length;
+
+  const updatePaso = (i, val)=> setPasos(prev=> prev.map((p,idx)=> idx===i? val : p));
+  const removePaso = (i)=> setPasos(prev=> prev.length>1 ? prev.filter((_,idx)=>idx!==i) : prev);
+  const addPaso = ()=> setPasos(prev=>[...prev, ""]);
+
+  // búsqueda automática: siempre intenta encontrar el alimento en tabla personal + tabla local
+  const debounceRefs = useRef({});
+  const triggerLookup = (ing)=>{
+    clearTimeout(debounceRefs.current[ing.id]);
+    debounceRefs.current[ing.id] = setTimeout(async ()=>{
+      if(!ing.nombre || ing.nombre.trim().length<2){
+        updateIngredient(ing.id, { lookupStatus:"" });
+        return;
+      }
+      updateIngredient(ing.id, { lookupStatus:"searching" });
+      const result = await lookupKcalPer100g(ing.nombre, alimentosPersonales);
+      if(!result){
+        updateIngredient(ing.id, { lookupStatus:"none" });
+        return;
+      }
+      const kcalTotal = calcKcalTotalFromBase(result.kcal100, ing.cantidad, ing.unidad);
+      updateIngredient(ing.id, { lookupStatus:"found", kcalMode:"auto", kcal100: result.kcal100.toString(), kcalTotal, origen: result.origen });
+    }, 250);
+  };
+
+  // recalcula kcalTotal cuando cambia cantidad o unidad, a partir del kcal100 ya fijado (manual o auto)
+  const recalcKcalTotal = (ing, newQty, newUnidad)=>{
+    if(!ing.kcal100) return ing.kcalTotal;
+    return calcKcalTotalFromBase(ing.kcal100, newQty, newUnidad);
+  };
+
+  // cuando el usuario teclea kcal100 a mano (tras no encontrar coincidencia)
+  const handleManualKcal100Change = (ing, newKcal100)=>{
+    const kcalTotal = calcKcalTotalFromBase(newKcal100, ing.cantidad, ing.unidad);
+    updateIngredient(ing.id, { kcal100: newKcal100, kcalTotal, kcalMode:"manual" });
+  };
+
+  // para unidades no proporcionales (ud, taza, cda...): el usuario escribe directamente las kcal totales
+  const handleManualKcalDirectaChange = (ing, newKcalTotal)=>{
+    updateIngredient(ing.id, { kcalTotal: newKcalTotal, kcal100:"", kcalMode:"manual" });
+  };
+
+  // al salir del campo de kcal100 manual, guarda el alimento en la tabla personal para no repetirlo
+  // (solo si es una unidad proporcional, ya que ahí sí existe un valor real de "por 100g/ml")
+  const handleManualKcal100Blur = (ing)=>{
+    if(UNIDADES_PROPORCIONALES.includes(ing.unidad) && ing.nombre.trim() && ing.kcal100 && !isNaN(parseFloat(ing.kcal100))){
+      onSaveAlimentoPersonal(ing.nombre.trim(), ing.kcal100);
+    }
+  };
+
+  // mientras se escribe el nombre, muestra sugerencias y dispara la búsqueda automática
+  const handleNombreChange = (ing, newNombre)=>{
+    updateIngredient(ing.id, {nombre:newNombre});
+    triggerLookup({...ing, nombre:newNombre});
+    const matches = suggestFoods(newNombre, alimentosPersonales, 5);
+    setSuggestions(matches);
+    setSuggestOpenFor(matches.length>0 ? ing.id : null);
+  };
+
+  // al elegir una sugerencia, se rellena nombre + kcal100 y se recalcula el total
+  const handleSelectSuggestion = (ing, sugerencia)=>{
+    const kcalTotal = calcKcalTotalFromBase(sugerencia.kcal100, ing.cantidad, ing.unidad);
+    updateIngredient(ing.id, {
+      nombre: sugerencia.nombre,
+      kcal100: sugerencia.kcal100.toString(),
+      kcalTotal,
+      kcalMode:"auto",
+      lookupStatus: "found",
+      origen: sugerencia.origen,
+    });
+    setSuggestOpenFor(null);
+    setSuggestions([]);
+  };
+
+  const handleSave = ()=>{
+    if(!canSave) return;
+    // por si algún campo manual no perdió el foco antes de guardar, aseguramos guardar igualmente
+    ingredientes.forEach(ing=>{
+      if(ing.kcalMode==="manual" && ing.nombre.trim() && ing.kcal100 && !isNaN(parseFloat(ing.kcal100))){
+        onSaveAlimentoPersonal(ing.nombre.trim(), ing.kcal100);
+      }
+    });
+    const cleanIngredientes = ingredientes
+      .filter(i=>i.nombre.trim())
+      .map(({lookupStatus, ...rest})=>rest);
+
+    // Modo "ajustar para hoy": solo se guardan los ingredientes de esta entrada del
+    // día, no se toca ni se crea ninguna receta del recetario.
+    if(dayEditMode){
+      onSave(cleanIngredientes);
+      return;
+    }
+
+    const cleanPasos = pasos.filter(p=>p.trim());
+    onSave({
+      id: recipe ? recipe.id : uid(),
+      titulo: titulo.trim(),
+      descripcion: descripcion.trim(),
+      categoria,
+      tiempo: tiempo? parseInt(tiempo) : null,
+      porciones: parseInt(porciones)||1,
+      ingredientes: cleanIngredientes,
+      pasos: cleanPasos,
+      notas: notas.trim(),
+      destacada,
+      creadoEn: recipe ? recipe.creadoEn : Date.now(),
+      _isNew: !recipe,
+    });
+  };
+
+  const handleRestaurarOriginal = ()=>{
+    setIngredientes((originalIngredientes||[]).map(i=> ({ ...i, id: i.id || uid(), lookupStatus: i.kcal100 ? "found" : "" })));
+  };
+  const totalKcalOriginal = dayEditMode ? Math.round(calcTotalKcalBase(originalIngredientes||[])) : null;
+  const totalKcalActual = Math.round(calcTotalKcalBase(ingredientes));
+
+  return (
+    <div className="screen">
+      <div className="screen-top">
+        <button className="link-btn" onClick={onClose}>Cancelar</button>
+        <div className="title">{dayEditMode ? "Ajustar para hoy" : (isEdit ? "Editar receta" : "Nueva receta")}</div>
+        <div style={{width:60}}></div>
+      </div>
+      <div className="screen-body">
+
+        {dayEditMode && (
+          <p className="quick-extra-hint" style={{marginTop:-4}}>
+            Cambia o añade lo que quieras para hoy. Solo se guarda esta entrada del día;
+            la receta guardada en tu recetario no se modifica.
+          </p>
+        )}
+
+        <div className="field">
+          <label>Nombre de la receta</label>
+          <input placeholder="Ej. Lentejas con chorizo" value={titulo} onChange={e=>setTitulo(e.target.value)} />
+        </div>
+
+        <div className="field">
+          <label>Descripción breve (opcional)</label>
+          <textarea rows={2} placeholder="Un plato de cuchara reconfortante, ideal para días fríos…" value={descripcion} onChange={e=>setDescripcion(e.target.value)} />
+        </div>
+
+        <div className="field-row">
+          <div className="field">
+            <label>Categoría</label>
+            <select value={categoria} onChange={e=>setCategoria(e.target.value)}>
+              {CATEGORIAS.map(c=> <option key={c.id} value={c.id}>{c.icon} {c.label}</option>)}
+            </select>
+          </div>
+          <div className="field">
+            <label>Tiempo (min)</label>
+            <input type="number" min="0" placeholder="30" value={tiempo} onChange={e=>setTiempo(e.target.value)} />
+          </div>
+        </div>
+
+        <div className="field">
+          <label>Porciones base</label>
+          <input
+            type="number" min="1" placeholder="Ej. 2"
+            value={porciones}
+            onChange={e=>setPorciones(e.target.value)}
+            className={porcionesValidas ? "" : "field-invalid"}
+          />
+          {!porcionesValidas && <p className="field-error-msg">Indica al menos 1 porción para poder guardar</p>}
+        </div>
+
+        <div className="section-label">Ingredientes</div>
+        {ingredientes.map((ing, ingIdx)=>{
+          const isNew = justAddedId===ing.id;
+          const step = (ing.unidad==='g' || ing.unidad==='ml') ? 10 : 1;
+          const kcalItemTotal = ing.kcalTotal ? Math.round(parseFloat(ing.kcalTotal)) : null;
+          return (
+          <div className={"ing-card"+(isNew?" ing-card-new":"")} key={ing.id}>
+            <div className="ing-card-name-row" style={{position:'relative'}}>
+              <input
+                placeholder="Nombre del ingrediente"
+                value={ing.nombre}
+                autoComplete="off"
+                autoFocus={isNew}
+                className="ing-card-name-input"
+                onChange={e=>handleNombreChange(ing, e.target.value)}
+                onFocus={()=>{
+                  const matches = suggestFoods(ing.nombre, alimentosPersonales, 5);
+                  setSuggestions(matches);
+                  setSuggestOpenFor(matches.length>0 ? ing.id : null);
+                }}
+                onBlur={()=> setTimeout(()=>setSuggestOpenFor(prev=> prev===ing.id ? null : prev), 150)}
+              />
+              <button className="ing-card-remove" onClick={()=>removeIngredient(ing.id)} aria-label="Quitar ingrediente">×</button>
+              {suggestOpenFor===ing.id && suggestions.length>0 && (
+                <div className="suggest-dropdown">
+                  {suggestions.map((s,idx)=>(
+                    <div key={idx} className="suggest-item" onMouseDown={()=>handleSelectSuggestion(ing, s)}>
+                      <span className="suggest-name">{s.nombre}</span>
+                      <span className="suggest-kcal">{s.kcal100} kcal/100{s.origen==="personal" ? " · tu tabla" : ""}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="ing-card-kcal-info">
+              {ing.lookupStatus==="searching" && <span className="ing-kcal-hint">Buscando…</span>}
+              {ing.lookupStatus==="found" && ing.kcalMode==="auto" && !manualKcalOpenFor[ing.id] && (
+                <span className="ing-kcal-hint">
+                  <span className="ing-kcal-chip found">✓ {ing.kcal100} kcal/100{ing.unidad==='ml'||ing.unidad==='l'?'ml':'g'}{ing.origen==="personal" ? " · tu tabla" : ""}</span>
+                  {' '}<button type="button" className="ing-kcal-link" onClick={()=>setManualKcalOpenFor(prev=>({...prev,[ing.id]:true}))}>editar</button>
+                  {!UNIDADES_PROPORCIONALES.includes(ing.unidad) && (
+                    <span className="ing-kcal-hint" style={{display:'block', marginTop:4}}>Esta unidad no permite calcular el total solo; pulsa "editar" para poner las kcal directamente.</span>
+                  )}
+                </span>
+              )}
+              {ing.lookupStatus==="none" && !manualKcalOpenFor[ing.id] && ing.kcalMode!=="manual" && (
+                <span className="ing-kcal-hint">
+                  No está en la tabla ·{' '}
+                  <button type="button" className="ing-kcal-link" onClick={()=>setManualKcalOpenFor(prev=>({...prev,[ing.id]:true}))}>añadir kcal/100g</button>
+                </span>
+              )}
+              {(ing.kcalMode==="manual" || manualKcalOpenFor[ing.id]) && (
+                UNIDADES_PROPORCIONALES.includes(ing.unidad) ? (
+                  <div className="ing-kcal-manual-row">
+                    <input
+                      placeholder="Kcal/100g"
+                      type="number" min="0" step="any"
+                      className="ing-kcal-manual-input"
+                      value={ing.kcal100}
+                      autoFocus
+                      onChange={e=>handleManualKcal100Change(ing, e.target.value)}
+                      onBlur={()=>handleManualKcal100Blur(ing)}
+                    />
+                    <span className="ing-kcal-hint">kcal por 100{ing.unidad==='ml'||ing.unidad==='l'?'ml':'g'}</span>
+                  </div>
+                ) : (
+                  <div className="ing-kcal-manual-row">
+                    <input
+                      placeholder="Kcal totales"
+                      type="number" min="0" step="any"
+                      className="ing-kcal-manual-input"
+                      value={ing.kcalTotal}
+                      autoFocus
+                      onChange={e=>handleManualKcalDirectaChange(ing, e.target.value)}
+                    />
+                    <span className="ing-kcal-hint">kcal para {ing.cantidad||'?'} {ing.unidad}</span>
+                  </div>
+                )
+              )}
+              {!ing.lookupStatus && !manualKcalOpenFor[ing.id] && ing.kcalMode!=="manual" && (
+                <span className="ing-kcal-hint">Escribe el nombre para calcular las kcal</span>
+              )}
+            </div>
+
+            <div className="ing-card-controls">
+              <div className="ing-qty-stepper">
+                <button
+                  type="button"
+                  disabled={!ing.nombre.trim()}
+                  onClick={()=>{
+                    const newQty = Math.max(0, (parseFloat(ing.cantidad)||0) - step);
+                    const newKcal = recalcKcalTotal(ing, newQty, ing.unidad);
+                    updateIngredient(ing.id, {cantidad:newQty.toString(), kcalTotal:newKcal});
+                  }}
+                  aria-label="Menos cantidad"
+                >−</button>
+                <input
+                  type="number" min="0" step="any"
+                  value={ing.cantidad}
+                  disabled={!ing.nombre.trim()}
+                  onChange={e=>{
+                    const newQty = e.target.value;
+                    const newKcal = recalcKcalTotal(ing, newQty, ing.unidad);
+                    updateIngredient(ing.id, {cantidad:newQty, kcalTotal:newKcal});
+                  }}
+                />
+                <button
+                  type="button"
+                  disabled={!ing.nombre.trim()}
+                  onClick={()=>{
+                    const newQty = (parseFloat(ing.cantidad)||0) + step;
+                    const newKcal = recalcKcalTotal(ing, newQty, ing.unidad);
+                    updateIngredient(ing.id, {cantidad:newQty.toString(), kcalTotal:newKcal});
+                  }}
+                  aria-label="Más cantidad"
+                >+</button>
+              </div>
+              <select
+                className="ing-unidad-select"
+                value={ing.unidad}
+                onChange={e=>{
+                  const newUnidad = e.target.value;
+                  const eraProp = UNIDADES_PROPORCIONALES.includes(ing.unidad);
+                  const esProp = UNIDADES_PROPORCIONALES.includes(newUnidad);
+                  if(esProp){
+                    // pasa a proporcional: recalcula desde kcal100 si lo hay, o queda vacío
+                    const newKcal = recalcKcalTotal(ing, ing.cantidad, newUnidad);
+                    updateIngredient(ing.id, {unidad:newUnidad, kcalTotal:newKcal});
+                  } else {
+                    // pasa a directo (ud, taza, cda...): conserva el total actual como punto de partida editable
+                    updateIngredient(ing.id, {unidad:newUnidad, kcal100:"", kcalMode: ing.lookupStatus==="found" ? "manual" : ing.kcalMode});
+                  }
+                }}
+              >
+                {UNIDADES.map(u=> <option key={u} value={u}>{u}</option>)}
+              </select>
+              {kcalItemTotal!==null && (
+                <span className="ing-card-kcal-total">{kcalItemTotal} kcal</span>
+              )}
+            </div>
+          </div>
+          );
+        })}
+        <button className="add-ing-btn" onClick={addIngredient}>+ Añadir ingrediente</button>
+
+        {ingredientesConKcal>0 && (
+          <div className="ing-total-row">
+            <span>Total {dayEditMode ? "ajustado" : "receta"}</span>
+            <span className="ing-total-kcal">{totalKcalActual} kcal</span>
+          </div>
+        )}
+        {dayEditMode && totalKcalActual !== totalKcalOriginal && (
+          <p className="quick-extra-hint" style={{marginTop:4}}>
+            Receta original: {totalKcalOriginal} kcal totales
+          </p>
+        )}
+        {dayEditMode && (
+          <button className="link-btn" style={{marginTop:6}} onClick={handleRestaurarOriginal}>
+            Restaurar ingredientes originales
+          </button>
+        )}
+
+        <div className="section-label">Preparación</div>
+        {pasos.map((p,i)=>(
+          <div className="step-form-row" key={i}>
+            <div className="step-num serif" style={{marginTop:10}}>{i+1}</div>
+            <textarea rows={2} placeholder={`Paso ${i+1}…`} value={p} onChange={e=>updatePaso(i, e.target.value)} />
+            <button className="remove-x" onClick={()=>removePaso(i)} aria-label="Quitar paso">×</button>
+          </div>
+        ))}
+        <button className="add-step-btn" onClick={addPaso}>+ Añadir paso</button>
+
+        <div className="field">
+          <label>Notas (opcional)</label>
+          <textarea rows={2} placeholder="Variantes, trucos, conservación…" value={notas} onChange={e=>setNotas(e.target.value)} />
+        </div>
+
+        <label style={{display:'flex', alignItems:'center', gap:10, fontSize:14, color:'#544e42', marginTop:8}}>
+          <input type="checkbox" checked={destacada} onChange={e=>setDestacada(e.target.checked)} style={{width:'auto'}}/>
+          Marcar como favorita
+        </label>
+      </div>
+
+      <div className="save-bar">
+        <button disabled={!canSave} onClick={handleSave}>{dayEditMode ? "Guardar para hoy" : (isEdit ? "Guardar cambios" : "Guardar receta")}</button>
+      </div>
+    </div>
+  );
+}
+
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(<App />);
+
+// ---------- Service worker registration (for installability) ----------
+if('serviceWorker' in navigator){
+  window.addEventListener('load', ()=>{
+    navigator.serviceWorker.register('./sw.js').catch(()=>{});
+  });
+}
+</script>
+</body>
+</html>
