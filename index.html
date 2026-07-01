@@ -1160,6 +1160,7 @@ function App(){
           onUpdateRaciones={updatePlanSlotRaciones}
           onUpdateIngredientes={updatePlanItemIngredientes}
           onCreateQuickExtra={createQuickExtra}
+          onSaveAlimentoPersonal={saveAlimentoPersonal}
         />
       )}
 
@@ -1304,7 +1305,7 @@ function DetailScreen({ recipe, onClose, onEdit, onDelete }){
 }
 
 // ---------- Calendario de planificación ----------
-function CalendarScreen({ recetas, plan, alimentosPersonales, objetivoKcal, onAddToSlot, onRemoveFromSlot, onUpdateRaciones, onUpdateIngredientes, onCreateQuickExtra }){
+function CalendarScreen({ recetas, plan, alimentosPersonales, objetivoKcal, onAddToSlot, onRemoveFromSlot, onUpdateRaciones, onUpdateIngredientes, onCreateQuickExtra, onSaveAlimentoPersonal }){
   const today = new Date();
   const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
   const [cursor, setCursor] = useState(new Date(today.getFullYear(), today.getMonth(), 1));
@@ -1460,13 +1461,14 @@ function CalendarScreen({ recetas, plan, alimentosPersonales, objetivoKcal, onAd
           onUpdateRaciones={(franjaId, index, raciones)=> onUpdateRaciones(fechaToKey(selectedDay), franjaId, index, raciones)}
           onUpdateIngredientes={(franjaId, index, ingredientesOverride)=> onUpdateIngredientes(fechaToKey(selectedDay), franjaId, index, ingredientesOverride)}
           onCreateQuickExtra={onCreateQuickExtra}
+          onSaveAlimentoPersonal={onSaveAlimentoPersonal}
         />
       )}
     </React.Fragment>
   );
 }
 
-function DayPanel({ date, plan, recetaById, recetas, alimentosPersonales, franjaList, kcalDeItem, onClose, onAdd, onRemove, onUpdateRaciones, onUpdateIngredientes, onCreateQuickExtra }){
+function DayPanel({ date, plan, recetaById, recetas, alimentosPersonales, franjaList, kcalDeItem, onClose, onAdd, onRemove, onUpdateRaciones, onUpdateIngredientes, onCreateQuickExtra, onSaveAlimentoPersonal }){
   const [pickerFor, setPickerFor] = useState(null); // franjaId | null
   const [editingItem, setEditingItem] = useState(null); // { franjaId, index, item, receta } | null
 
@@ -1556,9 +1558,15 @@ function DayPanel({ date, plan, recetaById, recetas, alimentosPersonales, franja
       )}
 
       {editingItem && (
-        <EditPlanItemForm
-          receta={editingItem.receta}
-          item={editingItem.item}
+        <FormScreen
+          recipe={{
+            ...editingItem.receta,
+            ingredientes: editingItem.item.ingredientesOverride || editingItem.receta.ingredientes || [],
+          }}
+          dayEditMode={true}
+          originalIngredientes={editingItem.receta.ingredientes || []}
+          alimentosPersonales={alimentosPersonales}
+          onSaveAlimentoPersonal={onSaveAlimentoPersonal}
           onSave={(ingredientesAjustados)=>{
             onUpdateIngredientes(editingItem.franjaId, editingItem.index, ingredientesAjustados);
             setEditingItem(null);
@@ -1709,69 +1717,6 @@ function RecipePicker({ recetas, alimentosPersonales, franjaLabel, onSelect, onC
 }
 
 // ---------- Ajuste de cantidades de una receta SOLO para un día/franja concreto ----------
-function EditPlanItemForm({ receta, item, onSave, onClose }){
-  // parte del override ya guardado si existe, o de los ingredientes originales de la receta
-  const base = item.ingredientesOverride || receta.ingredientes || [];
-  const [ingredientes, setIngredientes] = useState(
-    base.map(i=> ({ ...i, id: i.id || uid() }))
-  );
-
-  const updateCantidad = (id, nuevaCantidad)=>{
-    setIngredientes(prev=> prev.map(ing=>{
-      if(ing.id!==id) return ing;
-      const kcalTotal = calcKcalTotalFromBase(ing.kcal100, nuevaCantidad, ing.unidad);
-      return { ...ing, cantidad: nuevaCantidad, kcalTotal: ing.kcal100 ? kcalTotal : ing.kcalTotal };
-    }));
-  };
-
-  const totalKcal = Math.round(calcTotalKcalBase(ingredientes));
-  const totalKcalOriginal = Math.round(calcTotalKcalBase(receta.ingredientes||[]));
-
-  const handleGuardar = ()=> onSave(ingredientes);
-  const handleRestaurar = ()=>{
-    setIngredientes((receta.ingredientes||[]).map(i=> ({ ...i, id: i.id || uid() })));
-  };
-
-  return (
-    <div className="recipe-picker-overlay" onClick={onClose}>
-      <div className="recipe-picker edit-plan-item" onClick={e=>e.stopPropagation()}>
-        <h3>Ajustar para hoy: {receta.titulo}</h3>
-        <p className="quick-extra-hint" style={{marginTop:-6}}>
-          Cambia las cantidades que realmente usaste. Solo afecta a esta entrada de hoy,
-          la receta guardada en tu recetario no se modifica.
-        </p>
-
-        {ingredientes.map(ing=>(
-          <div className="edit-ing-row" key={ing.id}>
-            <span className="edit-ing-name">{ing.nombre}</span>
-            <input
-              type="number" min="0" step="any"
-              value={ing.cantidad}
-              onChange={e=>updateCantidad(ing.id, e.target.value)}
-            />
-            <span className="edit-ing-unidad">{ing.unidad}</span>
-          </div>
-        ))}
-
-        <div className="edit-total-row">
-          <span>Total ajustado</span>
-          <span className="edit-total-kcal">{totalKcal} kcal</span>
-        </div>
-        {totalKcal !== totalKcalOriginal && (
-          <p className="quick-extra-hint" style={{marginTop:4}}>
-            Receta original: {totalKcalOriginal} kcal totales
-          </p>
-        )}
-
-        <div style={{display:'flex', gap:10, marginTop:16}}>
-          <button className="link-btn" onClick={handleRestaurar} style={{flex:1}}>Restaurar original</button>
-          <button className="quick-extra-confirm" onClick={handleGuardar}>Guardar para hoy</button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 // ---------- Estadísticas ----------
 function StatsScreen({ recetas, plan, objetivoKcal, onUpdateObjetivoKcal }){
   const today = new Date();
@@ -2035,7 +1980,7 @@ function calcKcalTotalFromBase(kcal100, cantidad, unidad){
   return round1((base/100) * qty * factor).toString();
 }
 
-function FormScreen({ recipe, categoriaInicial, onClose, onSave, alimentosPersonales, onSaveAlimentoPersonal }){
+function FormScreen({ recipe, categoriaInicial, onClose, onSave, alimentosPersonales, onSaveAlimentoPersonal, dayEditMode, originalIngredientes }){
   const isEdit = !!recipe;
   const [titulo, setTitulo] = useState(recipe? recipe.titulo : "");
   const [descripcion, setDescripcion] = useState(recipe? (recipe.descripcion||"") : "");
@@ -2164,6 +2109,14 @@ function FormScreen({ recipe, categoriaInicial, onClose, onSave, alimentosPerson
     const cleanIngredientes = ingredientes
       .filter(i=>i.nombre.trim())
       .map(({lookupStatus, ...rest})=>rest);
+
+    // Modo "ajustar para hoy": solo se guardan los ingredientes de esta entrada del
+    // día, no se toca ni se crea ninguna receta del recetario.
+    if(dayEditMode){
+      onSave(cleanIngredientes);
+      return;
+    }
+
     const cleanPasos = pasos.filter(p=>p.trim());
     onSave({
       id: recipe ? recipe.id : uid(),
@@ -2181,14 +2134,27 @@ function FormScreen({ recipe, categoriaInicial, onClose, onSave, alimentosPerson
     });
   };
 
+  const handleRestaurarOriginal = ()=>{
+    setIngredientes((originalIngredientes||[]).map(i=> ({ ...i, id: i.id || uid(), lookupStatus: i.kcal100 ? "found" : "" })));
+  };
+  const totalKcalOriginal = dayEditMode ? Math.round(calcTotalKcalBase(originalIngredientes||[])) : null;
+  const totalKcalActual = Math.round(calcTotalKcalBase(ingredientes));
+
   return (
     <div className="screen">
       <div className="screen-top">
         <button className="link-btn" onClick={onClose}>Cancelar</button>
-        <div className="title">{isEdit ? "Editar receta" : "Nueva receta"}</div>
+        <div className="title">{dayEditMode ? "Ajustar para hoy" : (isEdit ? "Editar receta" : "Nueva receta")}</div>
         <div style={{width:60}}></div>
       </div>
       <div className="screen-body">
+
+        {dayEditMode && (
+          <p className="quick-extra-hint" style={{marginTop:-4}}>
+            Cambia o añade lo que quieras para hoy. Solo se guarda esta entrada del día;
+            la receta guardada en tu recetario no se modifica.
+          </p>
+        )}
 
         <div className="field">
           <label>Nombre de la receta</label>
@@ -2372,9 +2338,19 @@ function FormScreen({ recipe, categoriaInicial, onClose, onSave, alimentosPerson
 
         {ingredientesConKcal>0 && (
           <div className="ing-total-row">
-            <span>Total receta</span>
-            <span className="ing-total-kcal">{Math.round(calcTotalKcalBase(ingredientes))} kcal</span>
+            <span>Total {dayEditMode ? "ajustado" : "receta"}</span>
+            <span className="ing-total-kcal">{totalKcalActual} kcal</span>
           </div>
+        )}
+        {dayEditMode && totalKcalActual !== totalKcalOriginal && (
+          <p className="quick-extra-hint" style={{marginTop:4}}>
+            Receta original: {totalKcalOriginal} kcal totales
+          </p>
+        )}
+        {dayEditMode && (
+          <button className="link-btn" style={{marginTop:6}} onClick={handleRestaurarOriginal}>
+            Restaurar ingredientes originales
+          </button>
         )}
 
         <div className="section-label">Preparación</div>
@@ -2399,7 +2375,7 @@ function FormScreen({ recipe, categoriaInicial, onClose, onSave, alimentosPerson
       </div>
 
       <div className="save-bar">
-        <button disabled={!canSave} onClick={handleSave}>{isEdit ? "Guardar cambios" : "Guardar receta"}</button>
+        <button disabled={!canSave} onClick={handleSave}>{dayEditMode ? "Guardar para hoy" : (isEdit ? "Guardar cambios" : "Guardar receta")}</button>
       </div>
     </div>
   );
