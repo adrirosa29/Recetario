@@ -1659,6 +1659,13 @@ function RecipePicker({ recetas, alimentosPersonales, franjaLabel, onSelect, onC
 
         {!showExtraForm ? (
           <React.Fragment>
+            <div className="search-wrap" style={{marginBottom:14}}>
+              <span className="search-icon">⌕</span>
+              <input placeholder="Buscar receta…" value={search} onChange={e=>setSearch(e.target.value)} />
+            </div>
+            <button className="quick-extra-btn" onClick={()=>setShowExtraForm(true)}>
+              + Añadir algo suelto (plátano, yogur…)
+            </button>
             {filtered.length===0 ? (
               <div className="recipe-picker-empty">
                 {recetas.length===0 ? "Aún no tienes recetas guardadas." : "No hay recetas que coincidan."}
@@ -1670,13 +1677,6 @@ function RecipePicker({ recetas, alimentosPersonales, franjaLabel, onSelect, onC
                 <span className="kcal">{Math.round(kcalPorPorcion(r))} kcal</span>
               </div>
             ))}
-            <div className="search-wrap" style={{marginTop:14, marginBottom:10}}>
-              <span className="search-icon">⌕</span>
-              <input placeholder="Buscar receta…" value={search} onChange={e=>setSearch(e.target.value)} />
-            </div>
-            <button className="quick-extra-btn" onClick={()=>setShowExtraForm(true)}>
-              + Añadir algo suelto (plátano, yogur…)
-            </button>
           </React.Fragment>
         ) : (
           <div className="quick-extra-form">
