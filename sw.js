@@ -1,4 +1,4 @@
-const CACHE_NAME = 'recetario-v29';
+const CACHE_NAME = 'recetario-v30';
 const ASSETS = [
   './index.html', './manifest.json', './icon-192.png', './icon-512.png', './fooddb.js',
   './vendor/react.production.min.js', './vendor/react-dom.production.min.js', './vendor/babel.min.js'

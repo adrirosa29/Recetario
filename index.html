@@ -2420,10 +2420,22 @@ function FormScreen({ recipe, categoriaInicial, onClose, onSave, alimentosPerson
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(<App />);
 
-// ---------- Service worker registration (for installability) ----------
+// ---------- Service worker registration (para poder instalar la app) ----------
+// updateViaCache:'none' evita que el propio navegador cachee sw.js por HTTP,
+// así siempre detecta si hay una versión nueva. Y si toma el control un
+// service worker nuevo, recargamos la página automáticamente para que el
+// cambio se vea sin tener que borrar caché a mano.
 if('serviceWorker' in navigator){
   window.addEventListener('load', ()=>{
-    navigator.serviceWorker.register('./sw.js').catch(()=>{});
+    navigator.serviceWorker.register('./sw.js', { updateViaCache: 'none' }).then(reg=>{
+      reg.update().catch(()=>{});
+    }).catch(()=>{});
+  });
+  let recargando = false;
+  navigator.serviceWorker.addEventListener('controllerchange', ()=>{
+    if(recargando) return;
+    recargando = true;
+    window.location.reload();
   });
 }
 </script>
