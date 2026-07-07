@@ -421,11 +421,20 @@
     padding:20px 20px calc(env(safe-area-inset-bottom) + 24px);
   }
   .recipe-picker h3{ font-size:17px; margin:0 0 14px; }
-  .picker-category-group{ margin-bottom:14px; }
+  .picker-category-group{ margin-bottom:6px; }
   .picker-category-label{
-    font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:.03em;
-    color:#a39a8c; margin:0 0 8px 2px;
+    width:100%; display:flex; align-items:center; justify-content:space-between;
+    background:none; border:none; cursor:pointer; font-family:inherit;
+    font-size:12.5px; font-weight:700; text-transform:uppercase; letter-spacing:.03em;
+    color:#8a8071; padding:10px 2px; margin:0;
   }
+  .picker-category-right{ display:flex; align-items:center; gap:8px; }
+  .picker-category-count{
+    font-size:11px; font-weight:700; color:var(--oliva); background:rgba(74,93,58,0.1);
+    padding:1px 7px; border-radius:100px; text-transform:none; letter-spacing:normal;
+  }
+  .picker-category-chevron{ display:inline-block; font-size:11px; color:#a39a8c; transition:transform .2s ease; }
+  .picker-category-chevron.open{ transform:rotate(180deg); }
   .recipe-picker-item{
     background:var(--blanco-papel); border:1px solid var(--linea); border-radius:12px;
     padding:12px 14px; margin-bottom:8px; display:flex; align-items:center; gap:10px; cursor:pointer;
@@ -1376,7 +1385,7 @@ function CalendarScreen({ recetas, plan, alimentosPersonales, objetivoKcal, onAd
     const receta = recetaById(item.recetaId);
     if(!receta) return 0;
     if(item.ingredientesOverride){
-      return calcTotalKcalBase(item.ingredientesOverride);
+      return calcTotalKcalBase(item.ingredientesOverride) * (item.raciones || 1);
     }
     return kcalPorPorcion(receta) * (item.raciones || 1);
   };
@@ -1565,16 +1574,15 @@ function DayPanel({ date, plan, recetaById, recetas, alimentosPersonales, franja
                       </div>
                     </div>
                     <div className="slot-bottom-line">
-                      {ajustado ? (
+                      <div className="raciones-control">
+                        <button onClick={()=>onUpdateRaciones(f.id, idx, raciones-0.5)} disabled={raciones<=0.5} aria-label="Menos raciones">−</button>
+                        <span className="raciones-num">{formatRaciones(raciones)} {raciones===1 ? 'ración' : 'raciones'}</span>
+                        <button onClick={()=>onUpdateRaciones(f.id, idx, raciones+0.5)} aria-label="Más raciones">+</button>
+                      </div>
+                      {ajustado && (
                         <button className="link-btn" style={{fontSize:12.5, padding:'2px 0'}} onClick={()=>onUpdateIngredientes(f.id, idx, null)}>
                           Quitar ajuste
                         </button>
-                      ) : (
-                        <div className="raciones-control">
-                          <button onClick={()=>onUpdateRaciones(f.id, idx, raciones-0.5)} disabled={raciones<=0.5} aria-label="Menos raciones">−</button>
-                          <span className="raciones-num">{formatRaciones(raciones)} {raciones===1 ? 'ración' : 'raciones'}</span>
-                          <button onClick={()=>onUpdateRaciones(f.id, idx, raciones+0.5)} aria-label="Más raciones">+</button>
-                        </div>
                       )}
                       <span className="slot-kcal">{kcalItem} kcal</span>
                     </div>
@@ -1627,6 +1635,12 @@ function DayPanel({ date, plan, recetaById, recetas, alimentosPersonales, franja
 
 function RecipePicker({ recetas, alimentosPersonales, franjaLabel, onSelect, onCreateQuickExtra, onClose }){
   const [search, setSearch] = useState("");
+  const [openCats, setOpenCats] = useState(()=> new Set()); // categorías desplegadas (vacío = todas cerradas)
+  const toggleCat = (id)=> setOpenCats(prev=>{
+    const next = new Set(prev);
+    next.has(id) ? next.delete(id) : next.add(id);
+    return next;
+  });
   const [showExtraForm, setShowExtraForm] = useState(false);
   const [extraNombre, setExtraNombre] = useState("");
   const [extraSuggestions, setExtraSuggestions] = useState([]);
@@ -1685,10 +1699,17 @@ function RecipePicker({ recetas, alimentosPersonales, franjaLabel, onSelect, onC
                 {CATEGORIAS.map(cat=>{
                   const items = filtered.filter(r=>r.categoria===cat.id);
                   if(items.length===0) return null;
+                  const isOpen = search.trim()!=="" || openCats.has(cat.id);
                   return (
                     <div key={cat.id} className="picker-category-group">
-                      <div className="picker-category-label">{cat.icon} {cat.label}</div>
-                      {items.map(r=>(
+                      <button type="button" className="picker-category-label" onClick={()=>toggleCat(cat.id)}>
+                        <span>{cat.icon} {cat.label}</span>
+                        <span className="picker-category-right">
+                          <span className="picker-category-count">{items.length}</span>
+                          <span className={"picker-category-chevron"+(isOpen?" open":"")}>▾</span>
+                        </span>
+                      </button>
+                      {isOpen && items.map(r=>(
                         <div className="recipe-picker-item" key={r.id} onClick={()=>onSelect(r.id)}>
                           <div className="stamp-sm">{catIcon(r.categoria)}</div>
                           <span className="name">{r.titulo}</span>
@@ -1701,10 +1722,17 @@ function RecipePicker({ recetas, alimentosPersonales, franjaLabel, onSelect, onC
                 {(() => {
                   const otras = filtered.filter(r=> !CATEGORIAS.some(c=>c.id===r.categoria));
                   if(otras.length===0) return null;
+                  const isOpen = search.trim()!=="" || openCats.has("__otras__");
                   return (
                     <div className="picker-category-group">
-                      <div className="picker-category-label">❋ Otras</div>
-                      {otras.map(r=>(
+                      <button type="button" className="picker-category-label" onClick={()=>toggleCat("__otras__")}>
+                        <span>❋ Otras</span>
+                        <span className="picker-category-right">
+                          <span className="picker-category-count">{otras.length}</span>
+                          <span className={"picker-category-chevron"+(isOpen?" open":"")}>▾</span>
+                        </span>
+                      </button>
+                      {isOpen && otras.map(r=>(
                         <div className="recipe-picker-item" key={r.id} onClick={()=>onSelect(r.id)}>
                           <div className="stamp-sm">{catIcon(r.categoria)}</div>
                           <span className="name">{r.titulo}</span>
@@ -1821,7 +1849,7 @@ function StatsScreen({ recetas, plan, objetivoKcal, onUpdateObjetivoKcal }){
     const receta = recetaById(item.recetaId);
     if(!receta) return 0;
     if(item.ingredientesOverride){
-      return calcTotalKcalBase(item.ingredientesOverride);
+      return calcTotalKcalBase(item.ingredientesOverride) * (item.raciones || 1);
     }
     return kcalPorPorcion(receta) * (item.raciones || 1);
   };
