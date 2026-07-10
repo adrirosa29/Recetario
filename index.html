@@ -365,27 +365,27 @@
   .day-panel h3{ font-size:19px; margin:0 0 4px; text-transform:capitalize; }
   .day-panel .day-total{ font-size:13px; color:var(--terracota); font-weight:700; margin-bottom:18px; }
 
-  .franja-block{ margin-bottom:16px; }
+  .franja-block{ margin-bottom:12px; }
   .franja-block .franja-label{
-    font-size:13px; font-weight:700; color:var(--oliva); display:flex; align-items:center; gap:6px; margin-bottom:8px;
+    font-size:12.5px; font-weight:700; color:var(--oliva); display:flex; align-items:center; gap:6px; margin-bottom:6px;
   }
   .franja-slot{
-    background:var(--blanco-papel); border:1px solid var(--linea); border-radius:12px;
-    padding:12px 14px; display:flex; align-items:center; justify-content:space-between; gap:10px;
-    min-height:24px;
+    background:var(--blanco-papel); border:1px solid var(--linea); border-radius:11px;
+    padding:9px 12px; display:flex; align-items:center; justify-content:space-between; gap:8px;
+    min-height:20px;
   }
-  .franja-slot.empty{ color:#a39a8c; font-size:14px; cursor:pointer; justify-content:center; border-style:dashed; }
-  .franja-slot .slot-recipe-name{ font-size:14.5px; font-weight:600; flex:1; min-width:0; }
+  .franja-slot.empty{ color:#a39a8c; font-size:13.5px; cursor:pointer; justify-content:center; border-style:dashed; padding:8px 12px; }
+  .franja-slot .slot-recipe-name{ font-size:13.5px; font-weight:600; flex:1; min-width:0; }
   .franja-slot .slot-kcal{ font-size:12px; color:#8a8071; flex-shrink:0; }
-  .franja-slot .slot-remove{ background:none; border:none; color:#b8ad9a; font-size:18px; cursor:pointer; padding:0 2px; flex-shrink:0; }
-  .slot-top-actions{ display:flex; align-items:center; gap:6px; flex-shrink:0; }
+  .franja-slot .slot-remove{ background:none; border:none; color:#b8ad9a; font-size:16px; cursor:pointer; padding:0 2px; flex-shrink:0; }
+  .slot-top-actions{ display:flex; align-items:center; gap:4px; flex-shrink:0; }
   .slot-edit{
-    background:none; border:none; color:#a39a8c; font-size:14px; cursor:pointer; padding:2px 4px; flex-shrink:0;
+    background:none; border:none; color:#a39a8c; font-size:13px; cursor:pointer; padding:2px 4px; flex-shrink:0;
   }
   .slot-edit:active{ color:var(--oliva); }
   .ajustado-badge{
-    display:inline-block; font-size:10px; font-weight:700; color:#8a6a2a; background:rgba(212,160,76,0.15);
-    padding:2px 7px; border-radius:100px; margin-left:7px; text-transform:uppercase; letter-spacing:0.2px;
+    display:inline-block; font-size:9.5px; font-weight:700; color:#8a6a2a; background:rgba(212,160,76,0.15);
+    padding:1px 6px; border-radius:100px; margin-left:6px; text-transform:uppercase; letter-spacing:0.2px;
     vertical-align:middle;
   }
 
@@ -407,19 +407,19 @@
   }
   .edit-total-kcal{ color:var(--terracota); font-size:17px; font-weight:700; }
 
-  .franja-slot.raciones-slot{ flex-direction:column; align-items:stretch; gap:8px; }
-  .slot-top-line{ display:flex; align-items:center; justify-content:space-between; gap:8px; }
-  .slot-bottom-line{ display:flex; align-items:center; justify-content:space-between; gap:8px; }
-  .raciones-control{ display:flex; align-items:center; gap:10px; }
+  .franja-slot.raciones-slot{ flex-direction:column; align-items:stretch; gap:5px; }
+  .slot-top-line{ display:flex; align-items:center; justify-content:space-between; gap:6px; }
+  .slot-bottom-line{ display:flex; align-items:center; justify-content:space-between; gap:6px; }
+  .raciones-control{ display:flex; align-items:center; gap:6px; }
   .raciones-control button{
-    width:26px; height:26px; border-radius:50%; border:1.5px solid var(--oliva); background:transparent;
-    color:var(--oliva); font-size:15px; cursor:pointer; display:flex; align-items:center; justify-content:center;
+    width:22px; height:22px; border-radius:50%; border:1.5px solid var(--oliva); background:transparent;
+    color:var(--oliva); font-size:13px; cursor:pointer; display:flex; align-items:center; justify-content:center;
     flex-shrink:0; line-height:1; padding:0;
   }
   .raciones-control button:disabled{ opacity:0.3; cursor:default; }
   .raciones-control button:not(:disabled):active{ background:var(--oliva); color:var(--crema); }
-  .raciones-num{ font-size:12.5px; font-weight:600; color:var(--carbon); white-space:nowrap; }
-  .raciones-slot .slot-kcal{ font-size:13px; font-weight:700; color:var(--terracota); }
+  .raciones-num{ font-size:11.5px; font-weight:600; color:var(--carbon); white-space:nowrap; }
+  .raciones-slot .slot-kcal{ font-size:12.5px; font-weight:700; color:var(--terracota); }
 
   .recipe-picker-overlay{
     position:fixed; inset:0; background:rgba(43,38,34,0.4); z-index:70;
@@ -1195,7 +1195,6 @@ function App(){
                           <div className="info">
                             <h3>{r.titulo}</h3>
                             <div className="meta-row">
-                              <span>⏱ {r.tiempo || '—'} min</span>
                               <span>◷ {servingsBase} porc.</span>
                               <span>{catLabel(r.categoria)}</span>
                             </div>
@@ -1306,10 +1305,6 @@ function DetailScreen({ recipe, onClose, onEdit, onDelete }){
 
         <div className="stat-row">
           <div className="stat-box">
-            <div className="num">{recipe.tiempo || '—'}</div>
-            <div className="lbl">Minutos</div>
-          </div>
-          <div className="stat-box">
             <div className="num kcal">{kcalPerServing || '—'}</div>
             <div className="lbl">Kcal / porción</div>
           </div>
@@ -1341,18 +1336,6 @@ function DetailScreen({ recipe, onClose, onEdit, onDelete }){
             </div>
           );
         })}
-
-        {(recipe.pasos||[]).length>0 && (
-          <React.Fragment>
-            <div className="section-label">Preparación</div>
-            {recipe.pasos.map((p,i)=>(
-              <div className="step-row" key={i}>
-                <div className="step-num serif">{i+1}</div>
-                <div className="step-text">{p}</div>
-              </div>
-            ))}
-          </React.Fragment>
-        )}
 
         {recipe.notas && (
           <React.Fragment>
@@ -1565,7 +1548,7 @@ function DayPanel({ date, plan, recetaById, recetas, alimentosPersonales, franja
                 const ajustado = !!item.ingredientesOverride;
                 const tieneIngredientes = (receta.ingredientes||[]).length>0;
                 return (
-                  <div className="franja-slot raciones-slot" key={idx} style={{marginBottom:6}}>
+                  <div className="franja-slot raciones-slot" key={idx} style={{marginBottom:5}}>
                     <div className="slot-top-line">
                       <span className="slot-recipe-name">
                         {receta.titulo}
@@ -2098,7 +2081,6 @@ function FormScreen({ recipe, categoriaInicial, onClose, onSave, alimentosPerson
   const [titulo, setTitulo] = useState(recipe? recipe.titulo : "");
   const [descripcion, setDescripcion] = useState(recipe? (recipe.descripcion||"") : "");
   const [categoria, setCategoria] = useState(recipe? recipe.categoria : (categoriaInicial || "comida"));
-  const [tiempo, setTiempo] = useState(recipe? (recipe.tiempo||"") : "");
   const [porciones, setPorciones] = useState(recipe? (recipe.porciones||"") : "");
   const [ingredientes, setIngredientes] = useState(
     recipe && recipe.ingredientes && recipe.ingredientes.length
@@ -2109,7 +2091,6 @@ function FormScreen({ recipe, categoriaInicial, onClose, onSave, alimentosPerson
         }))
       : [emptyIngredient()]
   );
-  const [pasos, setPasos] = useState(recipe && recipe.pasos && recipe.pasos.length ? [...recipe.pasos] : [""]);
   const [notas, setNotas] = useState(recipe? (recipe.notas||"") : "");
   const [destacada, setDestacada] = useState(recipe? !!recipe.destacada : false);
   const [suggestOpenFor, setSuggestOpenFor] = useState(null); // id del ingrediente con sugerencias abiertas
@@ -2137,10 +2118,6 @@ function FormScreen({ recipe, categoriaInicial, onClose, onSave, alimentosPerson
     setTimeout(()=>setJustAddedId(prev=> prev===nuevo.id ? null : prev), 1500);
   };
   const ingredientesConKcal = ingredientes.filter(i=>i.kcalTotal).length;
-
-  const updatePaso = (i, val)=> setPasos(prev=> prev.map((p,idx)=> idx===i? val : p));
-  const removePaso = (i)=> setPasos(prev=> prev.length>1 ? prev.filter((_,idx)=>idx!==i) : prev);
-  const addPaso = ()=> setPasos(prev=>[...prev, ""]);
 
   // búsqueda automática: siempre intenta encontrar el alimento en tabla personal + tabla local
   const debounceRefs = useRef({});
@@ -2241,16 +2218,15 @@ function FormScreen({ recipe, categoriaInicial, onClose, onSave, alimentosPerson
       return;
     }
 
-    const cleanPasos = pasos.filter(p=>p.trim());
     onSave({
       id: recipe ? recipe.id : uid(),
       titulo: titulo.trim(),
       descripcion: descripcion.trim(),
       categoria,
-      tiempo: tiempo? parseInt(tiempo) : null,
+      tiempo: recipe ? recipe.tiempo : null,
       porciones: parseFloat(porciones)||1,
       ingredientes: cleanIngredientes,
-      pasos: cleanPasos,
+      pasos: recipe ? (recipe.pasos||[]) : [],
       notas: notas.trim(),
       destacada,
       creadoEn: recipe ? recipe.creadoEn : Date.now(),
@@ -2290,17 +2266,11 @@ function FormScreen({ recipe, categoriaInicial, onClose, onSave, alimentosPerson
           <textarea rows={2} placeholder="Un plato de cuchara reconfortante, ideal para días fríos…" value={descripcion} onChange={e=>setDescripcion(e.target.value)} />
         </div>
 
-        <div className="field-row">
-          <div className="field">
-            <label>Categoría</label>
-            <select value={categoria} onChange={e=>setCategoria(e.target.value)}>
-              {CATEGORIAS.map(c=> <option key={c.id} value={c.id}>{c.icon} {c.label}</option>)}
-            </select>
-          </div>
-          <div className="field">
-            <label>Tiempo (min)</label>
-            <input type="number" min="0" placeholder="30" value={tiempo} onChange={e=>setTiempo(e.target.value)} />
-          </div>
+        <div className="field">
+          <label>Categoría</label>
+          <select value={categoria} onChange={e=>setCategoria(e.target.value)}>
+            {CATEGORIAS.map(c=> <option key={c.id} value={c.id}>{c.icon} {c.label}</option>)}
+          </select>
         </div>
 
         <div className="field">
@@ -2475,16 +2445,6 @@ function FormScreen({ recipe, categoriaInicial, onClose, onSave, alimentosPerson
             Restaurar ingredientes originales
           </button>
         )}
-
-        <div className="section-label">Preparación</div>
-        {pasos.map((p,i)=>(
-          <div className="step-form-row" key={i}>
-            <div className="step-num serif" style={{marginTop:10}}>{i+1}</div>
-            <textarea rows={2} placeholder={`Paso ${i+1}…`} value={p} onChange={e=>updatePaso(i, e.target.value)} />
-            <button className="remove-x" onClick={()=>removePaso(i)} aria-label="Quitar paso">×</button>
-          </div>
-        ))}
-        <button className="add-step-btn" onClick={addPaso}>+ Añadir paso</button>
 
         <div className="field">
           <label>Notas (opcional)</label>
