@@ -2164,8 +2164,19 @@ function FormScreen({ recipe, categoriaInicial, onClose, onSave, alimentosPerson
 
   // recalcula kcalTotal cuando cambia cantidad o unidad, a partir del kcal100 ya fijado (manual o auto)
   const recalcKcalTotal = (ing, newQty, newUnidad)=>{
-    if(!ing.kcal100) return ing.kcalTotal;
-    return calcKcalTotalFromBase(ing.kcal100, newQty, newUnidad);
+    if(UNIDADES_PROPORCIONALES.includes(newUnidad)){
+      if(!ing.kcal100) return ing.kcalTotal;
+      return calcKcalTotalFromBase(ing.kcal100, newQty, newUnidad);
+    }
+    // Unidades no proporcionales (ud, cda, taza, pizca...): no hay "kcal por 100",
+    // así que escalamos a partir de las kcal por unidad que ya tenía, para que
+    // cambiar la cantidad SÍ actualice el total (ej. 1 ud = 50 kcal -> 2 uds = 100 kcal).
+    const cantidadAnterior = parseFloat(ing.cantidad);
+    const totalAnterior = parseFloat(ing.kcalTotal);
+    const nuevaCantidad = parseFloat(newQty);
+    if(!cantidadAnterior || isNaN(totalAnterior) || isNaN(nuevaCantidad)) return ing.kcalTotal;
+    const kcalPorUnidad = totalAnterior / cantidadAnterior;
+    return Math.round(kcalPorUnidad * nuevaCantidad * 100) / 100;
   };
 
   // cuando el usuario teclea kcal100 a mano (tras no encontrar coincidencia)
